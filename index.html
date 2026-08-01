@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Piyik Brain</title>
+  <!-- Font sesuai UI-Guidelines.md: Judul pakai Poppins, isi pakai Inter.
+       Hanya dipakai pada halaman Home & bottom nav (lihat home.css). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="icon" type="image/png" href="src/assets/piyik-logo.png" />
+  <link rel="stylesheet" href="src/styles/tokens.css" />
+  <link rel="stylesheet" href="src/styles/main.css" />
+  <link rel="stylesheet" href="src/styles/home.css" />
+  <link rel="stylesheet" href="src/styles/song.css">
+  <link rel="stylesheet" href="src/styles/settings.css">
+  <link rel="stylesheet" href="src/styles/about.css">
+  <link rel="stylesheet" href="src/styles/note-card.css">
+  <link rel="stylesheet" href="src/styles/chat.css">
+</head>
+<body>
+  <main id="app">
+    <header class="app-header">
+      <p id="status"></p>
+    </header>
+
+    <section id="view-home">
+      <div class="home-hero">
+        <img src="src/assets/piyik-logo.png" alt="Piyik Brain" class="home-hero-logo" width="120" height="120" />
+        <h1 class="home-hero-title"><span class="app-title-dark">Piyik</span> <span class="app-title-accent">Brain</span></h1>
+      </div>
+
+      <p class="home-greeting">Apa yang ingin kamu ingat hari ini?</p>
+
+      <form id="home-capture-form" class="home-capture">
+        <input
+          type="text"
+          id="home-capture-input"
+          class="home-capture-input"
+          placeholder="Ketik apa saja..."
+          autocomplete="off"
+        />
+        <button type="submit" class="home-capture-submit" aria-label="Tambah catatan baru">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
+      </form>
+
+      <div class="home-recent-header">
+        <h2 class="home-heading" id="home-recent-heading">Terbaru</h2>
+        <button type="button" id="home-see-all" class="home-see-all" hidden>Lihat semua ›</button>
+      </div>
+      <ul id="home-recent-list" class="home-recent-list"></ul>
+    </section>
+
+    <section id="view-chat" hidden>
+      <div class="chat-header">
+        <h2 class="chat-title">Chat</h2>
+        <button type="button" id="btn-clear-chat" class="chat-clear" aria-label="Bersihkan riwayat chat">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7h16" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
+            <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+          </svg>
+        </button>
+      </div>
+
+      <ul id="chat-message-list" class="chat-message-list"></ul>
+
+      <form id="chat-form" class="chat-input-bar">
+        <input
+          type="text"
+          id="chat-input"
+          class="chat-input"
+          placeholder="Tulis pesan..."
+          autocomplete="off"
+        />
+        <button type="submit" class="chat-send" aria-label="Kirim pesan">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
+      </form>
+    </section>
+
+    <section id="view-list" hidden>
+      <div class="list-header">
+        <h2 class="list-title">Catatan</h2>
+      </div>
+
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+          <input type="text" id="search-input" placeholder="Cari catatan..." />
+        </div>
+
+        <div class="filter-select-wrap">
+          <select id="filter-type">
+            <option value="">Semua</option>
+            <option value="catatan">Catatan</option>
+            <option value="tugas">Tugas</option>
+            <option value="ide">Ide</option>
+            <option value="belanja">Belanja</option>
+            <option value="orang">Orang</option>
+            <option value="pengingat">Pengingat</option>
+            <option value="song">Lagu</option>
+          </select>
+          <svg class="filter-select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Chip filter cepat. Menyetel nilai #filter-type & memicu event
+           "change" supaya logika filter yang sudah ada (di index.js) tetap
+           jalan tanpa perlu diubah — lihat src/modules/notes/filter-chips.js -->
+      <div class="filter-chips" id="filter-chips">
+        <button type="button" class="chip chip-active" data-type="">Semua</button>
+        <button type="button" class="chip" data-type="song">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+          Song
+        </button>
+        <button type="button" class="chip" data-type="tugas">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" /></svg>
+          Tugas
+        </button>
+        <button type="button" class="chip" data-type="ide">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z" /></svg>
+          Ide
+        </button>
+        <button type="button" class="chip" data-type="belanja">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L23 6H6" /></svg>
+          Belanja
+        </button>
+        <button type="button" class="chip" data-type="orang">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.9" /><path d="M16 3.1a4 4 0 0 1 0 7.8" /></svg>
+          Orang
+        </button>
+        <button type="button" class="chip" data-type="pengingat">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+          Pengingat
+        </button>
+      </div>
+
+      <ul id="note-list"></ul>
+    </section>
+
+    <section id="view-form" hidden>
+      <div class="form-header">
+        <button type="button" id="btn-form-back" class="form-back" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+        <h2 id="form-title">Catatan Baru</h2>
+      </div>
+      <form id="note-form">
+        <input type="hidden" id="input-id" />
+
+        <label for="input-title">Judul</label>
+        <input type="text" id="input-title" required />
+
+        <label for="input-type">Tipe</label>
+        <div class="type-select-wrap" id="type-select">
+          <span class="type-select-icon" id="type-select-icon"></span>
+          <select id="input-type">
+            <option value="catatan">Catatan</option>
+            <option value="tugas">Tugas</option>
+            <option value="ide">Ide</option>
+            <option value="belanja">Belanja</option>
+            <option value="orang">Orang</option>
+            <option value="pengingat">Pengingat</option>
+            <option value="song">Lagu</option>
+          </select>
+          <svg class="type-select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+
+        <label for="input-content" id="input-content-label">Isi</label>
+        <textarea id="input-content" rows="6"></textarea>
+        <span id="input-content-counter" class="input-content-counter" hidden></span>
+
+        <div id="song-fields" hidden>
+          <div class="song-editor-header">
+            <div>
+              <span class="song-editor-label">Editor Lagu</span>
+              <p class="song-editor-hint">Tulis chord di atas lirik sesuai posisinya.</p>
+            </div>
+            <button type="button" id="btn-song-example" class="song-example-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z" />
+              </svg>
+              Contoh
+            </button>
+          </div>
+          <div class="song-editor-box">
+            <div id="song-editor-gutter" class="song-editor-gutter" aria-hidden="true"><span>1</span></div>
+            <textarea id="song-lyrics-input" class="song-mono song-editor-textarea" rows="10" placeholder="Ketik seperti notepad biasa. Tulis chord di baris sendiri di atas lirik, contoh: Gm A lalu baris berikutnya liriknya."></textarea>
+            <span id="song-lyrics-counter" class="song-lyrics-counter">0 karakter</span>
+          </div>
+
+          <button type="button" id="btn-song-detail-toggle" class="song-detail-toggle" aria-expanded="false" aria-controls="song-detail-fields">
+            <span>Detail Lagu (opsional)</span>
+            <svg class="song-detail-toggle-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          <div id="song-detail-fields" class="song-detail-fields" hidden>
+            <label for="input-song-tempo">Tempo (BPM)</label>
+            <input type="number" id="input-song-tempo" min="0" />
+
+            <label for="input-song-key">Key</label>
+            <input type="text" id="input-song-key" placeholder="Contoh: C Major" />
+
+            <label for="input-song-genre">Genre</label>
+            <input type="text" id="input-song-genre" />
+
+            <label for="input-song-status">Status</label>
+            <select id="input-song-status">
+              <option value="draft">Draft</option>
+              <option value="selesai">Selesai</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btn-cancel">Batal</button>
+          <button type="submit">Simpan</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="view-detail" hidden>
+      <div class="detail-header">
+        <button id="btn-back" class="detail-back" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+        <div class="detail-header-text">
+          <h2 id="detail-title"></h2>
+          <!-- Diisi khusus untuk tipe "song" oleh song.controller.js
+               (lihat setSongDetailHeader) — tetap kosong/hidden untuk
+               tipe lain. -->
+          <p id="detail-subtitle" class="detail-subtitle" hidden></p>
+        </div>
+        <button id="btn-edit" class="detail-edit" aria-label="Ubah catatan">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+          </svg>
+        </button>
+        <button id="btn-delete" class="detail-delete" aria-label="Hapus catatan">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+          </svg>
+        </button>
+      </div>
+      <p id="detail-type" class="detail-type-pill"></p>
+      <p id="detail-content"></p>
+
+      <hr />
+
+      <section id="todo-section" hidden>
+        <h3>Checklist</h3>
+        <ul id="todo-list"></ul>
+        <div class="todo-add">
+          <input type="text" id="todo-input" placeholder="Tambah item..." />
+          <button id="btn-add-todo">Tambah</button>
+        </div>
+      </section>
+
+      <section id="song-section" hidden>
+        <h4>Lirik</h4>
+        <div class="song-toolbar">
+          <div class="song-toolbar-col">
+            <span class="song-toolbar-label">Transpose</span>
+            <div class="song-toolbar-group" role="group" aria-label="Transpose">
+              <button type="button" id="btn-transpose-down" class="song-toolbar-btn" aria-label="Turun setengah nada">−</button>
+              <span id="song-transpose-label" class="song-toolbar-value">0</span>
+              <button type="button" id="btn-transpose-up" class="song-toolbar-btn" aria-label="Naik setengah nada">+</button>
+            </div>
+          </div>
+
+          <span class="song-toolbar-divider" aria-hidden="true"></span>
+
+          <div class="song-toolbar-col">
+            <span class="song-toolbar-label">Font</span>
+            <div class="song-toolbar-group" role="group" aria-label="Ukuran font">
+              <button type="button" id="btn-chord-font-dec" class="song-toolbar-btn" aria-label="Perkecil font">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="10" cy="10" r="7" />
+                  <path d="M21 21l-5.6-5.6" />
+                  <path d="M7.5 10h5" />
+                </svg>
+              </button>
+              <button type="button" id="btn-chord-font-inc" class="song-toolbar-btn" aria-label="Perbesar font">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="10" cy="10" r="7" />
+                  <path d="M21 21l-5.6-5.6" />
+                  <path d="M7.5 10h5" />
+                  <path d="M10 7.5v5" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <span class="song-toolbar-divider" aria-hidden="true"></span>
+
+          <div class="song-toolbar-col">
+            <span class="song-toolbar-label">Play</span>
+            <div class="song-toolbar-group" role="group" aria-label="Auto scroll">
+              <button type="button" id="btn-autoscroll-speed-dec" class="song-toolbar-btn" aria-label="Kurangi kecepatan scroll">−</button>
+              <button type="button" id="btn-autoscroll-toggle" class="song-toolbar-btn song-toolbar-btn-play" aria-pressed="false">
+                <span class="song-autoscroll-icon song-autoscroll-icon-play" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                </span>
+                <span class="song-autoscroll-icon song-autoscroll-icon-pause" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+                </span>
+                <span id="song-autoscroll-speed-label" class="song-autoscroll-speed-badge">1</span>
+                <span class="sr-only" id="song-autoscroll-play-label">Putar</span>
+              </button>
+              <button type="button" id="btn-autoscroll-speed-inc" class="song-toolbar-btn" aria-label="Tambah kecepatan scroll">+</button>
+            </div>
+          </div>
+        </div>
+        <div id="song-detail-lines"></div>
+
+        <h3>Detail Lagu</h3>
+        <p class="song-detail-pills">
+          <span id="song-detail-genre" class="song-pill song-pill-lavender"></span>
+          <span id="song-detail-key" class="song-pill song-pill-sky"></span>
+          <span id="song-detail-tempo" class="song-pill song-pill-lemon"></span>
+          <span id="song-detail-status" class="song-pill"></span>
+        </p>
+      </section>
+
+
+      <hr />
+
+      <h3>Catatan Terkait</h3>
+      <p id="relation-summary" class="relation-summary"></p>
+      <ul id="related-list"></ul>
+
+      <div class="relation-add">
+        <select id="relation-target"></select>
+        <button id="btn-add-relation">Tambah Relasi</button>
+      </div>
+
+      <h3>Rekomendasi Catatan</h3>
+      <ul id="recommended-list"></ul>
+    </section>
+
+    <section id="view-settings" hidden>
+      <div class="settings-header">
+        <button type="button" id="btn-settings-back" class="settings-back" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+        <h2 class="settings-title">Pengaturan</h2>
+      </div>
+
+      <div class="settings-group">
+        <h3 class="settings-group-title">Data</h3>
+        <div class="settings-card">
+          <button type="button" id="btn-backup" class="settings-row">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v10M8 9l4-4 4 4" />
+              <path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+            </svg>
+            <span class="settings-row-label">Backup Data</span>
+            <svg class="settings-row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+
+          <label for="input-restore" class="settings-row">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21V11M8 15l4 4 4-4" />
+              <path d="M4 9V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4" />
+            </svg>
+            <span class="settings-row-label">Restore Data</span>
+            <svg class="settings-row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </label>
+          <input type="file" id="input-restore" accept="application/json" hidden />
+        </div>
+      </div>
+
+      <!-- Tema & Mode Terang sengaja masih teks statis (belum ada fitur
+           ganti tema/dark mode), lihat Backlog Future Version di Blueprint. -->
+      <div class="settings-group">
+        <h3 class="settings-group-title">Tampilan</h3>
+        <div class="settings-card">
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="8.5" r="1" fill="currentColor" stroke="none" />
+              <circle cx="8.5" cy="12" r="1" fill="currentColor" stroke="none" />
+              <circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none" />
+              <circle cx="12" cy="15.5" r="1" fill="currentColor" stroke="none" />
+            </svg>
+            <span class="settings-row-label">Tema</span>
+            <span class="settings-row-value">Default</span>
+          </div>
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            </svg>
+            <span class="settings-row-label">Mode Terang</span>
+            <span class="settings-row-value">Aktif</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3 class="settings-group-title">Privasi</h3>
+        <div class="settings-card">
+          <div class="settings-row">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="11" width="14" height="9" rx="2" />
+              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
+            <span class="settings-row-label">Kirim data pemakaian anonim</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-telemetry" />
+              <span class="switch-track"></span>
+            </label>
+          </div>
+        </div>
+        <p class="settings-hint">
+          App mengirim data pemakaian anonim (ID acak, versi app, jumlah pakai fitur, dan catatan error) untuk membantu perbaikan. Isi catatanmu tidak pernah ikut terkirim. Bisa dimatikan kapan saja.
+        </p>
+      </div>
+
+      <div class="settings-group">
+        <h3 class="settings-group-title">Tentang</h3>
+        <div class="settings-card">
+          <button type="button" id="btn-about" class="settings-row">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <line x1="12" y1="11" x2="12" y2="16" />
+              <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" />
+            </svg>
+            <span class="settings-row-label">Tentang Piyik Brain</span>
+            <svg class="settings-row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <line x1="12" y1="11" x2="12" y2="16" />
+              <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" />
+            </svg>
+            <span class="settings-row-label">Versi 1.0</span>
+          </div>
+        </div>
+      </div>
+
+      <p id="settings-status" class="settings-status"></p>
+    </section>
+
+    <section id="view-about" hidden>
+      <div class="settings-header">
+        <button type="button" id="btn-about-back" class="settings-back" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+        <h2 class="settings-title">Tentang</h2>
+      </div>
+
+      <div class="about-hero">
+        <img src="src/assets/piyik-logo.png" alt="Piyik Brain" class="about-hero-logo" width="72" height="72" />
+        <h1 class="about-hero-title">Piyik <span class="about-hero-title-accent">Brain</span></h1>
+        <p class="about-hero-version">Versi 1.0.0 | July 2026</p>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-card about-philosophy">
+          <p>
+            Piyik Brain lahir dari kebiasaan sederhana: menulis. Sering kali
+            jawaban atas masalah hari ini sebenarnya sudah pernah kita tulis
+            sendiri, jauh di masa lalu. Di sinilah Piyik Brain hadir —
+            ruang tenang untuk menyimpan dan mengingat kembali pengalaman,
+            ide, dan pelajaran yang pernah kita miliki, agar catatan tak
+            sekadar jadi arsip.
+          </p>
+          <p>
+            Versi 1.0 adalah langkah pertama menuju itu. Terima kasih telah
+            menggunakan Piyik Brain.
+          </p>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3 class="settings-group-title">Prinsip</h3>
+        <div class="settings-card">
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="11" width="14" height="9" rx="2" />
+              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
+            <span class="settings-row-label">Privat — semua catatanmu tersimpan di perangkatmu</span>
+          </div>
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M8 12h8M12 8v8" />
+            </svg>
+            <span class="settings-row-label">Data pemakaian anonim dikirim untuk perbaikan — bisa dimatikan di Pengaturan</span>
+          </div>
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="2" y1="2" x2="22" y2="22" />
+              <path d="M8.5 16.5a5 5 0 0 1 7 0" />
+              <path d="M5 12.5a10 10 0 0 1 3-2.1" />
+              <path d="M19 12.5a10 10 0 0 0-3-2.1" />
+              <path d="M12 20h.01" />
+            </svg>
+            <span class="settings-row-label">Offline — tidak butuh internet</span>
+          </div>
+          <div class="settings-row settings-row-static">
+            <svg class="settings-row-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 6.5 17 6.5S18.5 8 17.4 13.7A7 7 0 0 1 11 20z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6" />
+            </svg>
+            <span class="settings-row-label">Sederhana — tanpa AI, tanpa iklan, tanpa distraksi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3 class="settings-group-title">Info Teknis</h3>
+        <div class="settings-card">
+          <div class="settings-row settings-row-static">
+            <span class="settings-row-label">Offline First</span>
+          </div>
+          <div class="settings-row settings-row-static">
+            <span class="settings-row-label">HTML • CSS • JavaScript</span>
+          </div>
+          <div class="settings-row settings-row-static">
+            <span class="settings-row-label">IndexedDB (Dexie.js)</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="about-tagline">Tempat berdialog dengan pikiranmu sendiri.</p>
+
+      <p class="about-credit">Dibuat oleh <strong>M. Novi Irkhami</strong> — Angon Rasa</p>
+    </section>
+  </main>
+
+  <!-- FAB tambah catatan: elemen terpisah dari strip nav (mengambang di atas
+       nav), sesuai mockup — bukan salah satu dari 4 item nav. ID & fungsi
+       klik tetap "nav-add" seperti sebelumnya, jadi listener di JS tidak
+       perlu diubah. -->
+  <button type="button" class="fab-add" id="nav-add" aria-label="Catatan baru">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  </button>
+
+  <nav id="bottom-nav">
+    <button type="button" class="nav-item" id="nav-home">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 11.5L12 4l8 7.5" />
+        <path d="M6 10v9h12v-9" />
+      </svg>
+      <span>Beranda</span>
+    </button>
+
+    <button type="button" class="nav-item" id="nav-chat">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h16v11H8l-4 4z" />
+      </svg>
+      <span>Chat</span>
+    </button>
+
+    <button type="button" class="nav-item" id="nav-notes">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 3h9l4 4v14H6z" />
+        <path d="M14 3v5h5" />
+        <path d="M9 12h7M9 16h7" />
+      </svg>
+      <span>Catatan</span>
+    </button>
+
+    <button type="button" class="nav-item" id="nav-settings">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="7" x2="20" y2="7" />
+        <circle cx="9" cy="7" r="1.6" />
+        <line x1="4" y1="14" x2="20" y2="14" />
+        <circle cx="16" cy="14" r="1.6" />
+        <line x1="4" y1="21" x2="20" y2="21" />
+        <circle cx="10" cy="21" r="1.6" />
+      </svg>
+      <span>Pengaturan</span>
+    </button>
+  </nav>
+
+  <!-- Dexie.js -->
+  <script src="src/vendor/dexie.js"></script>
+    
+  <script type="module" src="src/index.js"></script>
+  <script type="module" src="src/shared/type-select.js"></script>
+
+  <!-- Tombol back di header form (mockup baru) sengaja tidak dikaitkan
+       langsung ke logika navigasi di notes.controller.js — cukup memicu
+       klik #btn-cancel yang sudah ada, supaya perilakunya (kembali ke
+       list/detail) tetap satu sumber kebenaran dan tidak duplikasi logika. -->
+  <script type="module">
+    document.getElementById("btn-form-back").addEventListener("click", () => {
+      document.getElementById("btn-cancel").click();
+    });
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,351 @@
+/* styles/home.css */
+/* Style untuk halaman Home dan bottom navigation.
+   Warna, radius, shadow, dan tipografi mengikuti 07-UI-Guidelines.md.
+   Dibuat terpisah dari main.css supaya satu file = satu tanggung jawab,
+   sejalan dengan konvensi satu modul = satu folder pada Structure.md. */
+
+/* ---------- Halaman Home ---------- */
+
+#view-home {
+  font-family: var(--font-body);
+}
+
+/* ---------- Hero (mascot + judul), sesuai mockup Konsep 1: mascot besar
+   di tengah sebagai identitas Beranda, bukan bar kecil persisten. ---------- */
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  margin: 12px 0 24px;
+}
+
+.home-hero-logo {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.home-hero-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-heading);
+}
+
+.home-greeting {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.home-heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-title); /* ukuran "Title" pada UI-Guidelines.md */
+  color: var(--color-text);
+  margin: 20px 0 10px;
+}
+
+.home-heading:first-child {
+  margin-top: 4px;
+}
+
+/* ---------- Kartu ringkasan "Hari Ini" ---------- */
+
+.home-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.home-card:active {
+  transform: scale(0.98);
+}
+
+.home-card-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-card-icon-primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.home-card-icon-secondary {
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary);
+}
+
+.home-card-icon-warning {
+  background: var(--color-warning-soft);
+  color: #b85c1e; /* versi gelap dari Coral, supaya ikon tetap kontras di atas tint */
+}
+
+.home-card-icon-lavender {
+  background: var(--color-lavender-soft);
+  color: var(--color-lavender);
+}
+
+.home-card-icon-lemon {
+  background: var(--color-lemon-soft);
+  color: #8a6d1b; /* versi gelap dari Lemon, supaya ikon tetap kontras di atas tint */
+}
+
+.home-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-card-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-body); /* ukuran "Body" */
+  color: var(--color-text);
+}
+
+.home-card-subtitle {
+  font-size: var(--font-size-caption); /* ukuran "Caption" */
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.home-recent-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 20px 0 10px;
+}
+
+.home-recent-header .home-heading {
+  margin: 0;
+}
+
+.home-see-all {
+  background: transparent;
+  padding: 0;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--font-size-caption);
+}
+
+.home-see-all:active {
+  transform: scale(0.96);
+}
+
+/* ---------- Daftar "Terakhir Diperbarui" ---------- */
+
+.home-recent-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-recent-item {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.home-recent-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-recent-title {
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-recent-subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.home-recent-menu {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-recent-menu:active {
+  transform: scale(0.9);
+}
+
+.home-recent-empty {
+  padding: 0;
+}
+
+/* ---------- Bottom Navigation ---------- */
+
+#bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  background: var(--color-card);
+  border-top: 1px solid var(--color-border);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+
+  font-family: var(--font-body);
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  color: var(--color-text-muted);
+  font-size: 12px; /* lebih kecil dari --font-size-caption (14px), khusus label nav yang ringkas */
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.nav-item-active {
+  /* Sesuai mockup: state aktif nav pakai hijau (Mint/primary), bukan
+     Lemon. --color-nav-active tidak dipakai lagi di sini, tapi tetap
+     didefinisikan di tokens.css untuk kompatibilitas kalau dibutuhkan lagi. */
+  color: var(--color-primary);
+}
+
+.nav-item-disabled {
+  color: var(--color-grey);
+  cursor: default;
+}
+
+/* ---------- FAB Tambah Catatan ----------
+   Elemen terpisah dari #bottom-nav (lihat index.html), mengambang fixed
+   di kanan bawah, bukan salah satu dari 4 item strip nav. */
+.fab-add {
+  position: fixed;
+  right: 20px;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 11;
+
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--color-primary);
+  color: #ffffff;
+  cursor: pointer;
+
+  /* Efek glow tipis warna primary (Mint) di bawah FAB, bukan shadow standar
+     (--shadow-soft), jadi sengaja tidak pakai token. */
+  box-shadow: 0 4px 10px rgba(24, 24, 27, 0.08);
+  transition: transform var(--transition-fast);
+}
+
+.fab-add:active {
+  transform: scale(0.95);
+}
+
+.fab-add[hidden] {
+  display: none;
+}
+
+/* ---------- Input capture Home ----------
+   Input + tombol kirim jadi satu pill, tombol kirim di kanan dalam,
+   mirip command bar aplikasi chat — lebih hemat ruang dibanding dua
+   elemen terpisah. */
+.home-capture {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-soft);
+  padding: 6px 6px 6px 18px;
+  margin-bottom: 4px;
+}
+
+.home-capture-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+  padding: 10px 0;
+}
+
+.home-capture-submit {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.home-capture-submit:active {
+  transform: scale(0.92);
+}

@@ -1,0 +1,449 @@
+/* styles/song.css */
+/* Styling khusus untuk editor lirik+chord per baris (form) dan tampilan
+   chord-di-atas-lirik (read mode) pada note tipe "song".
+   Dipisah dari main.css sesuai Structure.md: satu file, satu tanggung jawab.
+
+   Chord & lirik sama-sama pakai font monospace (lebar tiap karakter sama).
+   Ini penting: posisi chord ditentukan user manual pakai spasi (misal
+   "Em      C      Em"), dan spasi itu cuma align presisi ke huruf lirik
+   di bawahnya kalau lebar karakternya seragam. Font proporsional biasa
+   (Inter dkk) akan bikin alignment meleset. */
+
+.song-mono {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* ---------- Pill Detail Lagu: Tempo/Key/Genre/Status (Tahap A6) ---------- */
+
+.song-detail-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.song-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-grey);
+  color: var(--color-text);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.song-pill-lemon {
+  background: var(--color-lemon-soft);
+}
+
+.song-pill-sky {
+  background: var(--color-secondary-soft);
+}
+
+.song-pill-lavender {
+  background: var(--color-lavender-soft);
+}
+
+.song-pill-mint {
+  background: var(--color-primary-soft);
+}
+
+.song-pill-grey {
+  background: var(--color-grey);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Editor Lagu: header + kotak dengan gutter (Tahap 3) ---------- */
+
+.song-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.song-editor-label {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-title);
+  color: var(--color-text);
+}
+
+.song-editor-hint {
+  margin: 2px 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.song-example-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-grey);
+  color: var(--color-text);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.song-example-btn:active {
+  background: var(--color-border);
+}
+
+.song-editor-box {
+  position: relative;
+  display: flex;
+  margin-top: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-grey);
+  overflow: hidden;
+}
+
+.song-editor-gutter {
+  flex-shrink: 0;
+  width: 32px;
+  padding: 12px 6px 28px 0;
+  overflow: hidden;
+  text-align: right;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.song-editor-gutter span {
+  display: block;
+}
+
+.song-editor-textarea {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+  padding: 12px 12px 28px 8px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.song-editor-textarea:focus {
+  outline: none;
+}
+
+.song-lyrics-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  background: var(--color-grey);
+  padding-left: 4px;
+}
+
+/* ---------- Detail Lagu: accordion (Tahap 4) ---------- */
+
+.song-detail-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.song-detail-toggle:active {
+  background: var(--color-grey);
+}
+
+.song-detail-toggle-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 200ms;
+}
+
+.song-detail-toggle.is-open .song-detail-toggle-chevron {
+  transform: rotate(180deg);
+}
+
+.song-detail-fields {
+  margin-top: 4px;
+}
+
+/* ---------- Editor (form) ---------- */
+
+.song-line-row {
+  padding: 10px;
+  margin-top: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-card);
+}
+
+.song-line-chord-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.song-line-chord {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.song-line-space {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  background: var(--color-grey);
+  color: var(--color-text);
+  font-size: var(--font-size-caption);
+  white-space: nowrap;
+}
+
+.song-line-text-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.song-line-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.song-line-remove {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--color-grey);
+  color: var(--color-text-muted);
+  font-size: 18px;
+  line-height: 1;
+}
+
+#btn-add-song-line {
+  margin-top: 10px;
+  background: var(--color-grey);
+  color: var(--color-text);
+}
+
+/* ---------- Read mode ---------- */
+
+#song-detail-lines {
+  margin: 0 0 16px;
+  padding: 16px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+  line-height: 1.65;
+  /* Kotak lirik sendiri yang discroll (bukan seluruh halaman) saat Auto
+     Scroll jalan, supaya pill/kontrol di atasnya tetap terlihat. Tinggi
+     dibatasi relatif ke layar, bukan angka tetap, supaya tetap wajar di
+     berbagai ukuran HP. */
+  max-height: 55vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Scrollbar disembunyikan (konsisten dengan #app) — konsep "Quiet
+     Workspace" menghindari elemen UI tambahan yang mengganggu. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#song-detail-lines::-webkit-scrollbar {
+  display: none;
+}
+
+.song-detail-controls {
+  margin: 10px 0 14px;
+}
+
+/* ---------- Toolbar Lagu: Transpose, Font, Play, Chord ----------
+   Disusun sebagai 4 kolom berlabel (bukan satu baris tombol tanpa
+   keterangan), supaya jelas tombol mana untuk fungsi apa. Kalau ruang
+   tidak cukup di layar sempit, kolom turun ke baris berikutnya
+   (flex-wrap) — bukan diperkecil atau disembunyikan — supaya semua
+   tombol tetap terlihat jelas dan mudah disentuh. */
+.song-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 4px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.song-toolbar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 60px;
+}
+
+.song-toolbar-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.song-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.song-toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 18px 0 2px;
+  flex-shrink: 0;
+  background: var(--color-border);
+}
+
+.song-toolbar-btn {
+  flex-shrink: 0;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-grey);
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.song-toolbar-value {
+  flex-shrink: 0;
+  min-width: 18px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+}
+
+/* Tombol Putar/Jeda — satu-satunya tombol berwarna aksen di toolbar,
+   supaya tetap menonjol sebagai aksi utama walau tombol lain jadi ikon
+   netral. Ikon berganti play/pause lewat class is-playing (di-toggle
+   song.view.js -> setAutoScrollPlaying). Diapit tombol kecepatan
+   (kurangi/tambah) di kiri-kanannya dalam satu kolom "Play". */
+.song-toolbar-btn-play {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.song-toolbar-btn-play:active {
+  opacity: 0.85;
+}
+
+.song-autoscroll-icon-pause {
+  display: none;
+}
+
+.song-toolbar-btn-play.is-playing .song-autoscroll-icon-play {
+  display: none;
+}
+
+.song-toolbar-btn-play.is-playing .song-autoscroll-icon-pause {
+  display: inline-flex;
+}
+
+/* Angka level kecepatan (1-5) ditampilkan sebagai badge kecil di pojok
+   tombol Play, supaya levelnya tetap terlihat tanpa menambah elemen
+   terpisah di kolom ini. */
+.song-autoscroll-speed-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-lemon);
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.song-detail-chord {
+  display: block;
+  color: var(--color-primary);
+  font-weight: 600;
+  /* Ukuran default var(--font-size-caption), diubah runtime lewat
+     --song-chord-font-size (di-set oleh song.view.js -> setChordFontSize). */
+  font-size: var(--song-chord-font-size, var(--font-size-caption));
+  /* white-space: pre supaya spasi di awal/tengah (posisi manual chord)
+     tidak ditelan browser seperti teks HTML biasa. */
+  white-space: pre;
+  margin-bottom: 1px;
+}
+
+.song-detail-lyric-text {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--song-lyric-font-size, var(--font-size-body));
+  white-space: pre-wrap;
+}
+
+.song-detail-label {
+  margin: 10px 0 4px;
+  color: var(--color-lavender);
+  font-weight: 700;
+}
+
+.song-detail-blank {
+  height: 0.75em;
+}
+
+.song-detail-empty {
+  margin: 0;
+  padding: 8px 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: var(--font-size-body);
+  text-align: center;
+}

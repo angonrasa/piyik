@@ -1,0 +1,662 @@
+/* styles/main.css */
+/* Reset dasar dan styling minimal.
+   Variabel warna/radius/dll ada di tokens.css (dimuat sebelum file ini). */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  height: 100dvh;
+  overflow: hidden;
+  padding: 16px;
+  overflow-wrap: break-word;
+  /* Jaga-jaga supaya tidak ada elemen yang membuat body melebar ke samping
+     (misal input/select yang lebarnya sedikit meleset dari 100%). */
+  overflow-x: hidden;
+}
+
+#app {
+  /* Lebar maksimal 430px sesuai UI-Guidelines.md (Layout, Mobile First). */
+  max-width: var(--layout-max-width);
+  width: 100%;
+  margin: 0 auto;
+  /* Scroll dipindah ke sini (bukan di body) supaya browser mobile tidak perlu
+     collapse/expand address bar saat scroll, sehingga #bottom-nav (fixed)
+     tidak lagi "turun sedikit" saat scroll. */
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Cegah efek "overscroll glow" bawaan Android saat scroll mentok atas/bawah
+     — tanpa ini, efeknya bisa terlihat seperti konten melebar ke samping. */
+  overscroll-behavior-y: contain;
+  /* Beri ruang di bawah supaya konten tidak tertutup bottom nav (fixed). */
+  padding-bottom: 76px;
+
+  /* Sembunyikan scrollbar bawaan (Konsep "Quiet Workspace" — tidak boleh
+     ada elemen UI yang mengganggu/berantakan). Scroll tetap berfungsi
+     normal lewat sentuhan, cuma indikator visualnya yang disembunyikan. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Edge/IE lama */
+}
+
+#app::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge Chromium, WebView Android */
+}
+
+/* Teks yang tetap terbaca screen reader tapi tidak ditampilkan secara
+   visual — dipakai saat sebuah kontrol sudah cukup jelas lewat ikon saja
+   (mis. toolbar Lagu di song.css) tapi label teks tetap perlu ada untuk
+   aksesibilitas. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* "Piyik" gelap, "Brain" hijau — meniru wordmark dua warna di logo yang
+   diupload (lihat src/assets/piyik-logo.png). Dipakai oleh hero di Home,
+   lihat home.css -> .home-hero-title. Ditaruh di main.css karena dua
+   warna ini adalah utilitas umum, bukan spesifik halaman Home. */
+.app-title-dark {
+  color: var(--color-ink);
+}
+
+.app-title-accent {
+  color: var(--color-mint);
+}
+
+#status {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  margin-top: 4px;
+}
+
+.list-header {
+  margin: 8px 0 16px;
+}
+
+/* Judul halaman dibuat lebih besar dari --font-size-heading (24px) supaya
+   terasa seperti "page title" ala mockup, bukan sekadar heading konten. */
+.list-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--color-text);
+}
+
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+}
+
+.search-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.search-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  padding: 11px 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.search-input-wrap input:focus {
+  outline: none;
+}
+
+/* Dropdown tipe di sebelah search disembunyikan — sudah diwakili filter
+   chip (.filter-chips) di bawahnya (lihat 08 update UI). Elemen sengaja
+   tidak dihapus dari HTML, hanya disembunyikan, karena filter-chips.js
+   masih menyinkronkan nilainya (chip -> select -> event "change") ke
+   logika filter yang sudah ada di notes.controller.js. */
+.filter-select-wrap {
+  display: none;
+}
+
+.filter-select-wrap select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 11px 32px 11px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.filter-select-wrap select:focus {
+  outline: none;
+}
+
+.filter-select-chevron {
+  position: absolute;
+  right: 10px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* ---------- Chip filter cepat ---------- */
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--font-size-caption);
+}
+
+.chip-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+/* #note-list dan .note-item (card) sekarang ada di styles/note-card.css
+   (Tahap 2 — Card Catatan). Pastikan note-card.css di-<link> SETELAH
+   file ini di index.html. */
+
+/* ---------- Empty state (dipakai di #note-list, bisa dipakai ulang
+   di list lain yang butuh state "belum ada data") ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 40px 16px 32px;
+}
+
+.empty-state-icon {
+  color: var(--color-grey);
+  margin-bottom: 8px;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+}
+
+.empty-state-subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.relation-summary {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  margin-bottom: 8px;
+}
+
+.btn-quick-add {
+  background: var(--color-primary);
+  padding: 4px 10px;
+  font-size: var(--font-size-caption);
+}
+
+/* ---------- Header form (Tahap 1 — redesign editor tipe Lagu) ----------
+   Generik untuk semua tipe catatan (bukan cuma "song"), karena #view-form
+   dipakai bersama oleh semua tipe — judulnya sendiri sudah dinamis lewat
+   #form-title (diisi oleh notes.controller.js).
+   Disamakan persis dengan pola header Pengaturan (.settings-header di
+   settings.css) supaya seragam di seluruh app: back bulat transparan +
+   judul besar, tanpa menu tambahan. */
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.form-back {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-back:active {
+  background: var(--color-grey);
+  transform: none;
+}
+
+#form-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Tipe: card dengan ikon bulat + chevron (Tahap 2) ----------
+   Generik untuk semua tipe (ikonnya diisi src/shared/type-select.js). */
+.type-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.type-select-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-select-wrap select {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  margin-top: 0;
+  padding: 8px 28px 8px 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.type-select-wrap select:focus {
+  outline: none;
+}
+
+.type-select-chevron {
+  position: absolute;
+  right: 12px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* ---------- Counter field "Catatan (opsional)" (Tahap 2) ----------
+   Elemen ini selalu ada di form (dipakai bersama semua tipe), tapi hanya
+   diaktifkan (maxlength + tampil) untuk tipe "song" lewat
+   song.view.js -> setSongContentNoteMode(). Untuk tipe lain tetap hidden. */
+.input-content-counter {
+  display: block;
+  margin-top: 4px;
+  text-align: right;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+form label {
+  display: block;
+  margin-top: 12px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+  background: var(--color-card);
+}
+
+.form-actions,
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Batal & Simpan: pill sejajar, lebar sama-sama penuh (Tahap 5). Warna
+   sudah otomatis benar dari rule `button` & `#btn-cancel` generik di
+   bawah — Simpan pakai --color-primary (Mint), Batal pakai --color-grey. */
+.form-actions button {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ---------- Header Detail (Tahap A1 — redesign tampilan baca Lagu) ----------
+   Generik untuk semua tipe catatan, pola sama dengan .form-header /
+   .settings-header: back bulat transparan + judul. Subjudul & sembunyi
+   pill tipe khusus diisi song.controller.js untuk tipe "song" saja
+   (lihat setSongDetailHeader di song.view.js). */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.detail-header .detail-back {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-header .detail-back:active {
+  background: var(--color-grey);
+  transform: none;
+}
+
+.detail-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-header-text #detail-title {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail-subtitle {
+  margin: 2px 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.detail-edit {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-grey);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hapus dipindah ke header (sejajar tombol edit), jadi tombol ikon bulat
+   kecil juga — bukan lagi tombol lebar penuh di bawah konten, supaya
+   tidak terlalu mencolok/mengganggu (mudah ke-tap tidak sengaja). */
+.detail-delete {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-grey);
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-delete:active {
+  background: var(--color-danger-soft);
+}
+
+#btn-cancel {
+  background: var(--color-grey);
+  color: var(--color-text);
+}
+
+#detail-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-heading);
+}
+
+/* Pill tipe catatan (07-UI-Guidelines.md -> Card: "tag ditampilkan sebagai
+   pill kecil di bawah judul"). Warna berbeda per tipe, dipetakan dari warna
+   yang sama dipakai kartu ringkasan Home, supaya makna warnanya konsisten
+   di seluruh aplikasi (bukan cuma cycling acak). */
+.detail-type-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-caption);
+  text-transform: capitalize;
+  margin: 4px 0 12px;
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary);
+}
+
+.detail-type-pill[data-type="tugas"] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.detail-type-pill[data-type="ide"] {
+  background: var(--color-warning-soft);
+  color: #b85c1e;
+}
+
+.detail-type-pill[data-type="belanja"],
+.detail-type-pill[data-type="orang"],
+.detail-type-pill[data-type="pengingat"] {
+  background: var(--color-lavender-soft);
+  color: var(--color-lavender);
+}
+
+#detail-content {
+  white-space: pre-wrap;
+  font-size: var(--font-size-body);
+  margin: 8px 0 16px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 16px 0;
+}
+
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-title);
+  margin-bottom: 8px;
+}
+
+.btn-remove-relation {
+  background: var(--color-grey);
+  color: var(--color-text);
+  padding: 4px 10px;
+  font-size: var(--font-size-caption);
+}
+
+.relation-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+}
+
+.relation-add select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button-like {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: var(--radius-button);
+  background: var(--color-grey);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  text-align: center;
+}
+
+.settings-status {
+  margin-top: 8px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.todo-item-text {
+  flex: 1;
+  font-size: var(--font-size-body);
+}
+
+.todo-item-done {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.todo-item-delete {
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+}
+
+.todo-empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body);
+}
+
+.todo-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.todo-add input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+}
+
+/* Layar lebih lebar (tablet/desktop): tampilkan sebagai kartu di tengah */
+@media (min-width: 600px) {
+  body {
+    padding: 32px 16px;
+  }
+
+  #app {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    box-shadow: var(--shadow-soft);
+  }
+}

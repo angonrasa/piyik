@@ -1,0 +1,65 @@
+/* styles/tokens.css */
+/* Design tokens — satu sumber kebenaran untuk warna, radius, shadow,
+   tipografi, layout, dan animasi, sesuai 07-UI-Guidelines.md.
+   Dipisah dari main.css/home.css karena satu file = satu tanggung jawab
+   (Structure.md). File ini wajib dimuat PALING AWAL, sebelum file CSS lain,
+   supaya variabelnya sudah tersedia. */
+
+:root {
+  /* ---------- Palet dasar (07-UI-Guidelines.md -> Warna) ---------- */
+  --color-lemon: #ffd54f;
+  --color-sky: #4fc3f7;
+  --color-mint: #62b43d;
+  --color-coral: #ffa65e;
+  --color-lavender: #b39ddb;
+  --color-ink: #263238;
+  --color-grey: #eceff1;
+
+  /* ---------- Warna semantik (dipetakan dari palet dasar di atas) ---- */
+  --color-bg: #ffffff;
+  --color-card: #ffffff;
+  --color-border: var(--color-grey);
+
+  --color-primary: var(--color-ink); /* tombol utama, FAB */
+  --color-secondary: var(--color-sky);
+  --color-warning: var(--color-coral); /* kartu "Ide" & status peringatan */
+  --color-danger: #ff8787; /* aksi hapus — di luar palet brand, khusus destructive */
+  --color-nav-active: var(--color-lemon); /* ikon aktif di bottom nav */
+
+  --color-text: var(--color-ink);
+
+  /* Turunan: teks sekunder/caption & versi "soft" (tint) warna aksen untuk
+     background chip ikon dsb. Tidak disebutkan eksplisit di guideline,
+     dibuat dari warna di atas supaya tetap konsisten satu sumber. */
+  --color-text-muted: #6b7780;
+  --color-primary-soft: rgba(98, 180, 61, 0.18);
+  --color-secondary-soft: rgba(79, 195, 247, 0.16);
+  --color-warning-soft: rgba(255, 166, 94, 0.2);
+  --color-danger-soft: rgba(255, 135, 135, 0.16);
+  --color-lavender-soft: rgba(179, 157, 219, 0.2);
+  --color-lemon-soft: rgba(255, 213, 79, 0.35);
+
+  /* ---------- Radius (07-UI-Guidelines.md -> Radius) ---------- */
+  --radius-card: 16px;
+  --radius-button: 14px;
+  --radius-input: 14px;
+  --radius-full: 999px; /* untuk elemen bulat penuh: badge, FAB, avatar */
+
+  /* ---------- Shadow (07-UI-Guidelines.md -> Shadow: "sangat halus") --- */
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.04);
+
+  /* ---------- Tipografi (07-UI-Guidelines.md -> Typography) ---------- */
+  --font-heading: "Poppins", system-ui, -apple-system, sans-serif; /* Judul */
+  --font-body: "Inter", system-ui, -apple-system, sans-serif; /* Konten */
+
+  --font-size-heading: 24px;
+  --font-size-title: 18px;
+  --font-size-body: 16px;
+  --font-size-caption: 14px;
+
+  /* ---------- Layout (07-UI-Guidelines.md -> Layout) ---------- */
+  --layout-max-width: 430px;
+
+  /* ---------- Animasi (07-UI-Guidelines.md -> Animasi: 200ms, halus) --- */
+  --transition-fast: 200ms ease;
+}
