@@ -38,4 +38,15 @@ async function init() {
   }
 }
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      await navigator.serviceWorker.register("./service-worker.js");
+      console.log("Service Worker berhasil didaftarkan");
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
+
 init();

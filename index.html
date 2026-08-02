@@ -6,6 +6,8 @@
   <title>Piyik Mind</title>
   <!-- Font sesuai UI-Guidelines.md: Judul pakai Poppins, isi pakai Inter.
        Hanya dipakai pada halaman Home & bottom nav (lihat home.css). -->
+  <link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#81C784">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500&display=swap"
@@ -632,6 +634,17 @@
       document.getElementById("btn-cancel").click();
     });
   </script>
-  
+  <script>
+    if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      await navigator.serviceWorker.register("./service-worker.js");
+      console.log("Service Worker berhasil didaftarkan");
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
+  </script>
 </body>
 </html>
