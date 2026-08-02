@@ -1,5 +1,5 @@
 /**
- * Code.gs — Piyik Brain Telemetry Receiver
+ * Code.gs — Piyik Mind Telemetry Receiver
  *
  * CARA PAKAI:
  * 1. Buat Google Sheet baru.
@@ -15,7 +15,8 @@
 
 function doPost(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var sheet = SpreadsheetApp.openById('GANTI_DENGAN_ID_SPREADSHEET').getActiveSheet();
+
     var data = JSON.parse(e.postData.contents);
 
     sheet.appendRow([
@@ -24,15 +25,21 @@ function doPost(e) {
       data.version || '',
       data.lastUsed || '',
       JSON.stringify(data.featureUsage || {}),
-      JSON.stringify(data.errors || []),
+      JSON.stringify(data.errors || [])
     ]);
 
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
+
   } catch (err) {
+
     return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
+      .createTextOutput(JSON.stringify({
+        status: 'error',
+        message: err.message
+      }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
+
