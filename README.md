@@ -1,8 +1,8 @@
-# Piyik Brain
+# Piyik Mind
 
 Ruang berpikir pribadi — bukan aplikasi produktivitas yang ramai.
 
-Piyik Brain adalah tempat menyimpan catatan, ide, tugas, dan pengingat, lalu menghubungkannya satu sama lain, sehingga kamu bisa mengingat kembali apa yang pernah kamu pikirkan.
+Piyik Mind adalah tempat menyimpan catatan, ide, tugas, dan pengingat, lalu menghubungkannya satu sama lain, sehingga kamu bisa mengingat kembali apa yang pernah kamu pikirkan.
 
 ## Fitur
 

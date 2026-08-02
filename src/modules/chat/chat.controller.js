@@ -54,6 +54,8 @@ import { normalizeMessage } from "./chat.normalize.js";
 import { searchNotes, getAllNotes, createNote, deleteNote } from "../notes/notes.repository.js";
 import { getRelatedNotes } from "../relations/relations.repository.js";
 import { retrieveMemory } from "../memory/memory.retrieval.js";
+import { extractCause } from "../memory/memory.reflection.js";
+import { calculateSimilarity, buildSimilarityVocab, SIMILARITY_THRESHOLD } from "../memory/memory.similarity.js";
 import {
   updateContext,
   getSearchResults,
@@ -172,6 +174,40 @@ const MEMORY_RECALL_REPLIES = [
   (titles) => `Sepertinya ini mirip sama yang pernah kamu tulis: ${titles}.`,
 ];
 
+// Variasi kalimat balasan Reflection Engine (Tahap 3 -
+// 05-Roadmap-Reakurasi.md). Milestone 3.1: kesamaan dicek lewat 5
+// kategori rule-based (lihat memory.similarity.js — cocok kata kunci,
+// BUKAN NLP: "orang"/"proyek" otomatis dari data catatan, "tempat"/
+// "aktivitas" dari daftar kata tetap). Satu set kalimat per kategori,
+// dipilih berdasarkan kategori dengan bobot match tertinggi
+// (similarity.topCategory, lihat buildReflection()).
+//
+// Kategori "sebab" jadi kasus khusus: kalau itu yang match DAN
+// extractCause() berhasil narik klausa "karena ..."-nya (memory.
+// reflection.js), pakai kalimat yang lebih detail (sebutkan sebabnya).
+// Kalau tidak, kategori lain cukup sebutkan kata kunci yang match
+// (Milestone 3.2: "batasi ke 1 relasi paling kuat saja per jawaban").
+const REFLECTION_REPLIES = {
+  sebab: [
+    (title, cause) => `Kamu pernah menulis hal serupa di "${title}". Waktu itu penyebabnya karena ${cause}.`,
+    (title, cause) => `Ini mirip "${title}" — waktu itu penyebabnya karena ${cause}.`,
+  ],
+  proyek: [
+    (title, keyword) => `Ini mirip "${title}" — sama-sama soal ${keyword}.`,
+    (title, keyword) => `Kamu pernah nulis soal ${keyword} juga, di "${title}".`,
+  ],
+  orang: [
+    (title, keyword) => `Ini mirip "${title}" — sama-sama nyebut ${keyword}.`,
+    (title, keyword) => `Kamu pernah nulis soal ${keyword} juga, di "${title}".`,
+  ],
+  aktivitas: [
+    (title, keyword) => `Ini mirip "${title}" — sama-sama soal ${keyword}.`,
+  ],
+  tempat: [
+    (title, keyword) => `Ini mirip "${title}" — sama-sama soal ${keyword}.`,
+  ],
+};
+
 // Variasi kalimat fallback saat intent gagal dikenali (Tahap B.1 -
 // 06-Chat-Polish-Roadmap.md). Kasih contoh perintah pakai judul catatan
 // asli dari DB (sama seperti handleHelp) supaya lebih relate.
@@ -194,6 +230,40 @@ const FALLBACK_AFTER_OPEN_REPLIES = [
   (title) => `Waduh, belum ngerti maksudmu. Mau liat hubungan "${title}" yang lagi dibuka? Coba bilang "ada hubungannya dengan apa?".`,
   (title) => `Belum nangkep nih. "${title}" masih dibuka lho, mau liat catatan yang terhubung?`,
 ];
+
+/**
+ * Menyusun kalimat Reflection (Tahap 3) untuk catatan teratas hasil
+ * retrieval, KALAU memang cukup mirip dengan pesan user (Milestone 3.1:
+ * skor kesamaan 5 kategori >= SIMILARITY_THRESHOLD, lihat
+ * memory.similarity.js).
+ *
+ * Kategori "sebab" jadi kasus khusus: kalau itu kategori terkuat yang
+ * match, coba narik klausa "karena ..."-nya lewat extractCause() buat
+ * kalimat yang lebih detail. Kalau klausanya gagal diambil (mis. kata
+ * "karena" cuma ada di judul, bukan isi), turun ke null — tidak maksain
+ * kalimat sebab tanpa sebab yang jelas.
+ * @param {string} pesan pesan asli user
+ * @param {object} topNote catatan #1 hasil ranking Tahap 2
+ * @returns {Promise<string|null>} null kalau tidak cukup mirip
+ */
+async function buildReflection(pesan, topNote) {
+  const notes = await getAllNotes();
+  const vocab = buildSimilarityVocab(notes);
+  const noteText = `${topNote.title} ${topNote.content}`;
+
+  const similarity = calculateSimilarity(pesan, noteText, vocab);
+  if (similarity.score < SIMILARITY_THRESHOLD || !similarity.topCategory) {
+    return null;
+  }
+
+  if (similarity.topCategory === "sebab") {
+    const cause = extractCause(topNote);
+    return cause ? pickRandom(REFLECTION_REPLIES.sebab)(topNote.title, cause) : null;
+  }
+
+  const templates = REFLECTION_REPLIES[similarity.topCategory];
+  return pickRandom(templates)(topNote.title, similarity.keyword);
+}
 
 /**
  * Balasan saat pesan user tidak dikenali intent apapun oleh detectIntent().
@@ -222,6 +292,16 @@ async function handleFallback(pesan) {
   const memories = await retrieveMemory(pesan);
   if (memories.length > 0) {
     updateContext({ searchResults: memories });
+
+    // Tahap 3 — Reflection Engine. Cuma cek catatan TERATAS (paling
+    // relevan hasil ranking Tahap 2), sesuai Milestone 3.2 "batasi ke 1
+    // relasi paling kuat saja per jawaban".
+    const reflection = await buildReflection(pesan, memories[0]);
+    if (reflection) return reflection;
+
+    // Tidak cukup mirip (skor di bawah SIMILARITY_THRESHOLD) -> turun ke
+    // MEMORY_RECALL_REPLIES biasa (Tahap 1), tidak maksain klaim
+    // kesamaan yang tidak ada datanya.
     const titles = memories.map((note) => note.title).join(", ");
     return pickRandom(MEMORY_RECALL_REPLIES)(titles);
   }

@@ -1,9 +1,9 @@
 // service-worker.js
-// Offline-first sederhana untuk Piyik Brain.
+// Offline-first sederhana untuk Piyik mind.
 // Taruh file ini SEJAJAR dengan index.html (di root), bukan di dalam src/,
 // supaya scope service worker mencakup seluruh aplikasi.
 
-const CACHE_NAME = "piyik-brain-v1";
+const CACHE_NAME = "piyik-mind-v1";
 
 // Daftar file inti yang wajib ada supaya app tetap bisa dibuka saat offline.
 // Sesuaikan path di bawah ini dengan struktur project-mu (src/index.js, dst).

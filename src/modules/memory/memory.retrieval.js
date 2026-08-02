@@ -1,76 +1,94 @@
 // modules/memory/memory.retrieval.js
 //
-// Tahap 1 — Memory Retrieval Engine (lihat 05-Roadmap-Reakurasi.md).
-// Milestone 1.1: retrieval dasar dari pesan bebas — dua jalur:
-// 1. Notes (kata mirip/keyword/judul/isi) via searchNotes().
-// 2. Relations (catatan yang terhubung ke hasil #1) via getRelatedNotes().
+// Tahap 1 — Memory Retrieval Engine + Tahap 2.1 — Context Ranking
+// (05-Roadmap-Reakurasi.md). Kumpulkan kandidat dari dua jalur (Notes +
+// Relations), tandai asal tiap kandidat (keyword match / relasi & dari
+// seed mana), lalu urutkan lewat rankMemories() (memory.ranking.js).
 //
-// Reuse fungsi yang sudah ada di modules/notes dan modules/relations —
-// TIDAK bikin mesin cari/query baru, sesuai KISS/YAGNI.
-//
-// Return berupa DATA TERSTRUKTUR (array notes), bukan kalimat jadi. Ini
-// sengaja: supaya nanti kalau lapisan "penyusun jawaban" diganti (misal
-// disambungkan ke AI), fungsi ini tidak perlu diubah — tugasnya cuma
-// mengambil memori yang relevan, bukan menyusun narasi.
-//
-// Ranking & pembatasan jumlah hasil BELUM di sini — itu Tahap 2
-// (Context Ranking), dikerjakan terpisah setelah Tahap 1 selesai.
+// Return tetap array Notes polos (bukan {note, score}) — pemanggil
+// (chat.controller.js) tidak perlu tahu ada skor di baliknya, cuma
+// butuh daftar note yang sudah terurut relevansinya.
 
 import { extractMeaningfulWords, hasEnoughSignal } from "./memory.keyword.js";
 import { searchNotes } from "../notes/notes.repository.js";
 import { getRelatedNotes } from "../relations/relations.repository.js";
+import { rankMemories } from "./memory.ranking.js";
 
 /**
- * Mencoba menemukan catatan lama yang relevan dari kalimat bebas (bukan
- * perintah pencarian eksplisit). Dipanggil sebagai retrieval PASIF —
- * hanya jalan kalau tidak ada intent lain yang cocok (lihat
- * chat.controller.js -> handleFallback).
  * @param {string} pesan pesan asli user, apa adanya (belum dinormalisasi)
- * @returns {Promise<Array>} catatan yang cocok (match langsung + terkait
- *   via relasi), array kosong jika tidak ada/tidak layak dicari
+ * @returns {Promise<Array>} catatan yang cocok, terurut relevansi,
+ *   array kosong jika tidak ada/tidak layak dicari
  */
 export async function retrieveMemory(pesan) {
   const words = extractMeaningfulWords(pesan);
-
   if (!hasEnoughSignal(words)) return [];
 
   const query = words.join(" ");
   const directMatches = await searchNotes(query);
-
   if (directMatches.length === 0) return [];
 
-  const relatedNotes = await collectRelatedNotes(directMatches);
-
-  return mergeUnique(directMatches, relatedNotes);
+  const candidates = await collectCandidates(directMatches);
+  const ranked = rankMemories(candidates);
+  
+  // Milestone 2.2 — batasi maks 3 hasil, buang sisanya (bukan disimpan
+  // buat ditampilkan nanti — DoD Tahap 2: chat tidak menampilkan daftar
+  // panjang).
+  return ranked.slice(0, 3).map((scored) => scored.note);
 }
 
 /**
- * Mengambil semua catatan yang terhubung (1 langkah relasi) dari
- * sekumpulan catatan hasil match langsung.
+ * Menyusun kandidat dari dua jalur: keyword match langsung, dan catatan
+ * terkait (1 langkah relasi) dari tiap keyword match. Dedupe by id — kalau
+ * satu catatan ketemu lewat KEDUA jalur, versi keyword match yang menang
+ * (didaftar duluan), karena itu status prioritas yang benar.
  * @param {Array} directMatches
- * @returns {Promise<Array>} gabungan catatan terkait (belum di-dedupe)
+ * @returns {Promise<import('./memory.ranking.js').MemoryCandidate[]>}
  */
-async function collectRelatedNotes(directMatches) {
-  const relatedLists = await Promise.all(
-    directMatches.map((note) => getRelatedNotes(note.id))
-  );
-  return relatedLists.flat();
+async function collectCandidates(directMatches) {
+  const directCandidates = directMatches.map((note) => ({
+    note,
+    isKeywordMatch: true,
+    isDirectRelation: false,
+    seedNote: null,
+  }));
+
+  const relatedCandidates = await collectRelatedCandidates(directMatches);
+
+  return dedupeCandidates([...directCandidates, ...relatedCandidates]);
 }
 
 /**
- * Menggabungkan dua daftar catatan tanpa duplikat, primary tetap di depan.
- * @param {Array} primary
- * @param {Array} secondary
- * @returns {Array}
+ * @param {Array} directMatches
+ * @returns {Promise<import('./memory.ranking.js').MemoryCandidate[]>}
  */
-function mergeUnique(primary, secondary) {
-  const seenIds = new Set(primary.map((note) => note.id));
+async function collectRelatedCandidates(directMatches) {
+  const perSeed = await Promise.all(
+    directMatches.map(async (seedNote) => {
+      const related = await getRelatedNotes(seedNote.id);
+      return related.map((note) => ({
+        note,
+        isKeywordMatch: false,
+        isDirectRelation: true,
+        seedNote,
+      }));
+    })
+  );
+  return perSeed.flat();
+}
 
-  const uniqueSecondary = secondary.filter((note) => {
-    if (seenIds.has(note.id)) return false;
-    seenIds.add(note.id);
-    return true;
-  });
+/**
+ * @param {import('./memory.ranking.js').MemoryCandidate[]} candidates
+ * @returns {import('./memory.ranking.js').MemoryCandidate[]}
+ */
+function dedupeCandidates(candidates) {
+  const seenIds = new Set();
+  const result = [];
 
-  return [...primary, ...uniqueSecondary];
+  for (const candidate of candidates) {
+    if (seenIds.has(candidate.note.id)) continue;
+    seenIds.add(candidate.note.id);
+    result.push(candidate);
+  }
+
+  return result;
 }
