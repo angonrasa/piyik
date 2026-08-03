@@ -48,10 +48,19 @@ src/
 ## Status
 
 Versi 1.0.0 — Juli 2026
+Versi 1.1.0 — Agustus 2026
+
+## Perubahan Terbaru (v1.1.0)
+
+- ✨ Menambahkan splash screen.
+- 🎨 Penyegaran tampilan antarmuka agar lebih modern dan elegan.
+- ⚡ Meningkatkan pengalaman pengguna saat aplikasi dibuka.
+- 🐞 Perbaikan bug dan peningkatan stabilitas.
 
 ## Lisensi
 
-[MIT](./LICENSE)
+Proyek ini dilisensikan di bawah **GNU General Public License v3.0 (GPL-3.0)**.
+Lihat file [LICENSE](./LICENSE) untuk detailnya.
 
 ---
 
