@@ -232,20 +232,40 @@
         <input class="title-input" type="text" id="input-title" placeholder="Judul" required autofocus />
 
         <label for="input-type" class="sr-only">Tipe</label>
-        <div class="type-select-wrap" id="type-select">
+
+        <!-- Trigger tampilan (pill). Popup native <select> tidak bisa
+             di-style (dirender OS, lihat diskusi bottom-sheet), jadi
+             dibuka lewat tombol ini, bukan lewat tap ke <select>
+             langsung. <select id="input-type"> di bawah tetap ada &
+             tetap menyimpan value sesungguhnya (dipakai form + kode
+             lain yang baca .value / dengar event "change"), cuma
+             disembunyikan visual — lihat type-select.js. -->
+        <button type="button" class="type-select-wrap" id="type-select-trigger" aria-haspopup="listbox" aria-expanded="false">
           <span class="type-select-icon" id="type-select-icon"></span>
-          <select id="input-type">
-            <option value="catatan">Catatan</option>
-            <option value="tugas">Tugas</option>
-            <option value="ide">Ide</option>
-            <option value="belanja">Belanja</option>
-            <option value="orang">Orang</option>
-            <option value="pengingat">Pengingat</option>
-            <option value="song">Lagu</option>
-          </select>
+          <span class="type-select-label" id="type-select-label">Catatan</span>
           <svg class="type-select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 9l6 6 6-6" />
           </svg>
+        </button>
+
+        <select id="input-type" class="type-select-native-hidden" tabindex="-1" aria-hidden="true">
+          <option value="catatan">Catatan</option>
+          <option value="tugas">Tugas</option>
+          <option value="ide">Ide</option>
+          <option value="belanja">Belanja</option>
+          <option value="orang">Orang</option>
+          <option value="pengingat">Pengingat</option>
+          <option value="song">Lagu</option>
+        </select>
+
+        <!-- Bottom-sheet custom pengganti popup native <select> (lihat
+             type-select.js). Isi item di-generate dari <option> di
+             atas saat load, supaya label/urutan tipe cuma ditulis
+             sekali (di <select>), tidak dobel di sini. -->
+        <div class="type-sheet-overlay" id="type-sheet-overlay" hidden>
+          <div class="type-sheet" id="type-sheet" role="listbox" aria-label="Pilih tipe catatan">
+            <div class="type-sheet-handle" aria-hidden="true"></div>
+          </div>
         </div>
 
         <label for="input-content" id="input-content-label" class="sr-only">Isi</label>
@@ -594,7 +614,7 @@
             sekadar jadi arsip.
           </p>
           <p>
-            Versi 1.0 adalah langkah pertama menuju itu. Versi 1.1 melanjutkannya dengan tampilan yang lebih tenang dan nyaman. Terima kasih telah
+            Versi 1.0 adalah langkah pertama menuju itu. Terima kasih telah
             menggunakan Piyik Mind.
           </p>
         </div>

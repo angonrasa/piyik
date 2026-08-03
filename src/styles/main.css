@@ -510,6 +510,15 @@ body:has(#view-form:not([hidden])) .fab-add {
   border: none;
   border-radius: var(--radius-full);
   background: var(--color-accent-soft);
+  /* Sekarang elemennya <button> (trigger bottom-sheet), bukan <div>
+     berisi <select> lagi -- reset sebagian style default `button`
+     generik di bawah (background, warna, padding, radius) supaya
+     tetap tampil sebagai pill kecil seperti sebelumnya. */
+  cursor: pointer;
+}
+
+.type-select-wrap:active {
+  transform: none;
 }
 
 .type-select-icon {
@@ -522,22 +531,18 @@ body:has(#view-form:not([hidden])) .fab-add {
   justify-content: center;
 }
 
-.type-select-wrap select {
-  width: auto;
-  margin-top: 0;
-  padding: 2px 0;
-  border: none;
-  background: transparent;
+.type-select-label {
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 12.5px;
   color: var(--color-text);
-  appearance: none;
-  -webkit-appearance: none;
 }
 
-.type-select-wrap select:focus {
-  outline: none;
+/* <select> asli dipertahankan di DOM (nyimpen value form + didengar
+   event "change" oleh kode lain), tapi tidak lagi dipakai sebagai UI
+   -- popup-nya digantikan .type-sheet-overlay di bawah. */
+.type-select-native-hidden {
+  display: none;
 }
 
 .type-select-chevron {
@@ -547,6 +552,106 @@ body:has(#view-form:not([hidden])) .fab-add {
   height: 12px;
   color: var(--color-text-muted);
   pointer-events: none;
+}
+
+/* ---------- Bottom-sheet pengganti popup native <select> tipe catatan ----------
+   Popup asli <select> dirender OS (lihat diskusi), warnanya tidak bisa
+   diatur CSS -- makanya diganti overlay + panel custom di sini. Isi
+   item di-generate JS dari <option> yang ada di #input-type (lihat
+   type-select.js), style mengikuti token warna yang sama dengan
+   chip/card lain supaya otomatis ikut tema apa pun yang sedang aktif. */
+.type-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.4);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.type-sheet-overlay[hidden] {
+  display: none;
+}
+
+.type-sheet-overlay-open {
+  opacity: 1;
+}
+
+.type-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--color-card);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  padding: 8px 8px calc(12px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 24px rgba(31, 41, 55, 0.18);
+  transform: translateY(100%);
+  transition: transform var(--transition-fast);
+}
+
+.type-sheet-overlay-open .type-sheet {
+  transform: translateY(0);
+}
+
+.type-sheet-handle {
+  width: 36px;
+  height: 4px;
+  margin: 6px auto 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+.type-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+  text-align: left;
+}
+
+.type-sheet-item:active {
+  background: var(--color-grey);
+  transform: none;
+}
+
+.type-sheet-item-active {
+  background: var(--color-accent-soft);
+}
+
+.type-sheet-item-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-sheet-item-label {
+  flex: 1;
+}
+
+.type-sheet-item-check {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  opacity: 0;
+}
+
+.type-sheet-item-active .type-sheet-item-check {
+  opacity: 1;
 }
 
 /* ---------- Counter field "Catatan (opsional)" (Tahap 2) ----------
