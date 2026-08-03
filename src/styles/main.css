@@ -268,6 +268,15 @@ body {
   position: relative;
 }
 
+/* FAB (+) ada di luar #app (lihat index.html), jadi tidak otomatis ikut
+   disembunyikan saat showView() ganti section aktif. Sembunyikan manual
+   khusus saat editor (#view-form) sedang tampil -- editor sudah punya
+   tombol back sendiri di .editor-header, FAB jadi tidak relevan/menutupi
+   konten di sana. */
+body:has(#view-form:not([hidden])) .fab-add {
+  display: none;
+}
+
 .editor-header,
 .detail-header {
   position: absolute;
@@ -381,6 +390,13 @@ body {
 /* display:flex di atas menang atas [hidden] bawaan browser, jadi harus
    ditulis eksplisit di sini -- pola sama dengan #song-fields[hidden]. */
 .editor-menu-dropdown[hidden] {
+  display: none;
+}
+
+/* Sama seperti di atas: display:block di .editor-menu-item menang atas
+   [hidden] bawaan browser, jadi "Detail Lagu" / "Hapus" tetap kelihatan
+   walau JS sudah set .hidden = true. Butuh override eksplisit juga. */
+.editor-menu-item[hidden] {
   display: none;
 }
 

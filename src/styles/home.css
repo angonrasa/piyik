@@ -24,7 +24,11 @@
 
 .home-hero-logo {
   display: block;
-  margin-bottom: 4px;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-card);
+  margin: 0 auto 4px;
+  box-shadow: var(--shadow-soft);
 }
 
 .home-hero-title {

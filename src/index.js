@@ -1,6 +1,12 @@
 // index.js
 // Titik masuk aplikasi Piyik Brain
 
+import { initSplash } from './core/splash.view.js';
+
+initSplash(() => {
+  // lanjut proses init app seperti biasa (render Beranda, dst)
+});
+
 import { checkDatabase } from "./core/db.js";
 import { initNotes, goToNewNote } from "./modules/notes/notes.controller.js";
 import { initSettings } from "./modules/settings/settings.controller.js";

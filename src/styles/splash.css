@@ -1,0 +1,68 @@
+/* styles/splash.css
+   Splash screen — overlay fullscreen sesaat saat app pertama dibuka.
+   Satu file = satu tanggung jawab (Structure.md), terpisah dari home.css
+   karena splash bukan bagian dari halaman Home, cuma lapisan di atasnya.
+   Warna/radius/shadow pakai token yang sama dengan modul lain supaya
+   konsisten (tokens.css). */
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100; /* di atas #app dan #bottom-nav */
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Layar hitam untuk momen "menggambar" — pakai token supaya tetap
+     bisa disesuaikan lewat tokens.css, bukan hardcode #000. */
+  background: var(--color-text-muted);
+  transition: opacity 300ms ease; /* FADE_OUT_MS di splash.view.js — jaga tetap sama */
+}
+
+#splash-screen.splash-hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Tidak ada lagi kotak/box di sekeliling logo — sesuai konsep "layar
+   hitam, titik putih kecil menggambar logo", bukan logo di dalam kartu
+   berwarna. Animasi menggambarnya sendiri ada di dalam file SVG. */
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.splash-logo-img {
+  width: 220px;
+  height: 220px;
+}
+
+/* Muncul setelah logo + lingkaran luar selesai digambar (1850ms —
+   harus sama dengan total durasi animasi di piyik-logo-animated.svg
+   sebelum fase diam). Warna putih karena background splash hitam. */
+.splash-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  opacity: 0;
+  animation: splash-title-in 350ms ease 1850ms forwards;
+}
+
+@keyframes splash-title-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-title {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
