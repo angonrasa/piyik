@@ -4,8 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Piyik Mind</title>
-  <!-- Font sesuai UI-Guidelines.md: Judul pakai Poppins, isi pakai Inter.
-       Hanya dipakai pada halaman Home & bottom nav (lihat home.css). -->
+  <!-- REDESIGN V2.0 (09-Redesign-Roadmap.md Tahap 1.2): judul sekarang
+       pakai Plus Jakarta Sans (var(--font-heading) di tokens.css), isi
+       pakai Inter. Poppins SEMENTARA masih dimuat karena about.css masih
+       hardcode "Poppins" langsung (belum ditokenisasi, lihat Tahap 7.2)
+       — begitu about.css direstyle pakai var(--font-heading), baris
+       Poppins di link ini boleh dihapus. -->
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#81C784">
 <!-- viewport-fit=cover di atas mengaktifkan env(safe-area-inset-*) supaya
@@ -15,7 +19,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Poppins:wght@500;600&family=Inter:wght@400;500&display=swap"
     rel="stylesheet"
   />
   <link rel="icon" type="image/png" href="./assets/icons/icon-192.png" />

@@ -77,13 +77,18 @@ body {
 /* "Piyik" gelap, "Brain" hijau — meniru wordmark dua warna di logo yang
    diupload (lihat src/assets/piyik-logo.png). Dipakai oleh hero di Home,
    lihat home.css -> .home-hero-title. Ditaruh di main.css karena dua
-   warna ini adalah utilitas umum, bukan spesifik halaman Home. */
+   warna ini adalah utilitas umum, bukan spesifik halaman Home.
+   REDESIGN V2.0: --color-ink dihapus dari tokens.css (diganti --color-text
+   #111827), dan aksen hijau wordmark ikut dipindah ke --color-accent
+   (lime #84CC16, warna brand baru) supaya konsisten dengan sistem warna
+   yang baru — bukan lagi var(--color-mint) yang sekarang khusus dipakai
+   untuk badge tipe catatan "Belanja" (lihat shared/note-type-meta.js). */
 .app-title-dark {
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .app-title-accent {
-  color: var(--color-mint);
+  color: var(--color-accent);
 }
 
 #status {
@@ -251,69 +256,239 @@ body {
   font-size: var(--font-size-caption);
 }
 
-/* ---------- Header form (Tahap 1 — redesign editor tipe Lagu) ----------
-   Generik untuk semua tipe catatan (bukan cuma "song"), karena #view-form
-   dipakai bersama oleh semua tipe — judulnya sendiri sudah dinamis lewat
-   #form-title (diisi oleh notes.controller.js).
-   Disamakan persis dengan pola header Pengaturan (.settings-header di
-   settings.css) supaya seragam di seluruh app: back bulat transparan +
-   judul besar, tanpa menu tambahan. */
-.form-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 16px;
+/* ---------- Header floating Editor & Detail (Tahap 7.1 — redesign
+   mengikuti piyik-mind-redesign-mockup.html) ----------
+   Dipakai bersama oleh #view-form (.editor-header) dan #view-detail
+   (.detail-header): mengambang di atas konten (position: absolute),
+   transparan + blur, cuma berisi tombol ikon bulat (back di kiri, aksi
+   lain di kanan). Konten di bawahnya (form-body/detail-body) diberi
+   padding-top supaya tidak ketutup. */
+#view-form,
+#view-detail {
+  position: relative;
 }
 
-.form-back {
+.editor-header,
+.detail-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 4px 12px;
+}
+
+.icon-btn,
+.detail-back,
+.detail-edit,
+.detail-delete {
+  position: relative;
   flex-shrink: 0;
   width: 40px;
   height: 40px;
   padding: 0;
+  border: none;
   border-radius: var(--radius-full);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-soft);
   color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.form-back:active {
+.detail-delete {
+  color: var(--color-danger);
+}
+
+.icon-btn:active,
+.detail-back:active,
+.detail-edit:active,
+.detail-delete:active {
   background: var(--color-grey);
   transform: none;
 }
 
-#form-title {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 30px;
-  color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ---------- Tipe: card dengan ikon bulat + chevron (Tahap 2) ----------
-   Generik untuk semua tipe (ikonnya diisi src/shared/type-select.js). */
-.type-select-wrap {
-  position: relative;
+.detail-header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-  padding: 6px 8px;
+  gap: 6px;
+}
+
+/* Titik hijau kecil di tombol menu editor -- penanda "tersimpan otomatis",
+   sesuai mockup (.autosave-dot). */
+.autosave-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  border: 1.5px solid #ffffff;
+}
+
+/* Judul screen (#form-title) dipertahankan hanya untuk aksesibilitas —
+   mockup tidak menampilkan judul screen di Editor secara visual. */
+
+/* ---------- Dropdown menu titik-tiga di Editor ----------
+   Berisi aksi yang sebelumnya tampil sebagai tombol Batal/Simpan penuh
+   di footer, atau field Editor Lagu yang selalu terlihat -- sekarang
+   disatukan di sini sesuai keputusan Tahap 7.1. */
+.editor-menu {
+  position: relative;
+}
+
+.editor-menu-dropdown {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  min-width: 160px;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-input);
-  background: var(--color-card);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.14);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.editor-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: calc(var(--radius-input) - 4px);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
+
+.editor-menu-item:active {
+  background: var(--color-grey);
+  transform: none;
+}
+
+.editor-menu-item-danger {
+  color: var(--color-danger);
+}
+
+/* ---------- Isi form Editor: judul besar & textarea polos full-bleed,
+   sesuai mockup (.title-input / .content-textarea). Header floating di
+   atas butuh ruang, jadi form diberi padding-top. ---------- */
+#note-form {
+  padding-top: 62px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 76px - env(safe-area-inset-top, 0px));
+}
+
+.title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 0 4px;
+  margin-top: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--color-text);
+}
+
+.title-input::placeholder {
+  color: var(--color-border);
+  font-weight: 700;
+}
+
+.content-textarea {
+  flex: 1;
+  min-height: 260px;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  padding: 0;
+  margin-top: 16px;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: 1.85;
+  color: var(--color-text);
+}
+
+.content-textarea::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---------- Panel "Detail Lagu" (Tahap 7.1) ----------
+   #song-fields sekarang jadi panel slide-in terpisah (bukan field yang
+   selalu tampil inline di form), dibuka lewat menu titik-tiga saat tipe
+   = Lagu. Kontennya sendiri (song-editor-header, dst di song.css) tidak
+   berubah, cuma dibungkus jadi overlay penuh layar di sini. */
+#song-fields {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--color-bg);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 16px;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform var(--transition-fast);
+}
+
+#song-fields.song-panel-open {
+  transform: translateX(0);
+}
+
+#song-fields[hidden] {
+  display: none;
+}
+
+.song-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.song-panel-header h2 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-heading);
+}
+
+/* ---------- Tipe: chip kecil (bukan card selebar form) ----------
+   Sesuai mockup (.type-chip): pill auto-width, ikon warna latar sesuai
+   tipe + chevron kecil. Generik untuk semua tipe (ikonnya diisi
+   src/shared/type-select.js). */
+.type-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin: 2px 0 20px;
+  padding: 4px 26px 4px 6px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
 }
 
 .type-select-icon {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -321,15 +496,14 @@ body {
 }
 
 .type-select-wrap select {
-  flex: 1;
-  min-width: 0;
   width: auto;
   margin-top: 0;
-  padding: 8px 28px 8px 0;
+  padding: 2px 0;
   border: none;
   background: transparent;
   font-family: var(--font-body);
-  font-size: var(--font-size-body);
+  font-weight: 600;
+  font-size: 12.5px;
   color: var(--color-text);
   appearance: none;
   -webkit-appearance: none;
@@ -341,7 +515,9 @@ body {
 
 .type-select-chevron {
   position: absolute;
-  right: 12px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
   color: var(--color-text-muted);
   pointer-events: none;
 }
@@ -421,34 +597,20 @@ button:active {
    .settings-header: back bulat transparan + judul. Subjudul & sembunyi
    pill tipe khusus diisi song.controller.js untuk tipe "song" saja
    (lihat setSongDetailHeader di song.view.js). */
-.detail-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 4px;
-}
-
-.detail-header .detail-back {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.detail-header .detail-back:active {
-  background: var(--color-grey);
-  transform: none;
-}
-
+/* .detail-header sendiri (posisi floating + tombol ikon) sudah didefinisikan
+   di atas bersama .editor-header. Judul (#detail-title) tetap tampil di
+   dalam header ini (beda dari mockup polos yang naruh judul di body),
+   supaya tidak perlu memindah markup #detail-title -- cukup diberi
+   background semi-transparan+blur sendiri di sini, sama seperti tombol
+   ikon di sebelahnya, supaya tetap terbaca di atas konten yang di-scroll. */
 .detail-header-text {
   flex: 1;
   min-width: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius-input);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .detail-header-text #detail-title {
@@ -464,42 +626,9 @@ button:active {
   color: var(--color-text-muted);
 }
 
-.detail-edit {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-grey);
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Hapus dipindah ke header (sejajar tombol edit), jadi tombol ikon bulat
-   kecil juga — bukan lagi tombol lebar penuh di bawah konten, supaya
-   tidak terlalu mencolok/mengganggu (mudah ke-tap tidak sengaja). */
-.detail-delete {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-grey);
-  color: var(--color-danger);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.detail-delete:active {
-  background: var(--color-danger-soft);
-}
-
-#btn-cancel {
-  background: var(--color-grey);
-  color: var(--color-text);
+/* Konten di bawah header digeser supaya tidak ketutup header floating. */
+#view-detail .detail-header + * {
+  margin-top: 52px;
 }
 
 #detail-title {
@@ -550,6 +679,33 @@ hr {
   border: none;
   border-top: 1px solid var(--color-border);
   margin: 16px 0;
+}
+
+/* ---------- Card wrapper untuk section di Detail Catatan (Tahap 4.7 &
+   5.5 — 09-Redesign-Roadmap.md): Todo checklist, Song lyrics/toolbar, dan
+   Relations (Catatan Terkait + Rekomendasi). Mockup redesign tidak punya
+   layar acuan langsung untuk bagian-bagian ini, jadi dibungkus mengikuti
+   bahasa visual yang sudah dipakai di tempat lain (note-card di Beranda,
+   mini-note-card di Chat): surface bg + radius besar + shadow halus.
+   Menggantikan <hr /> polos yang dipakai sebelumnya sebagai pemisah. ---------- */
+.detail-card-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.detail-card-section h3:first-child,
+.detail-card-section h4:first-child {
+  margin-top: 0;
+}
+
+#todo-list,
+#related-list,
+#recommended-list {
+  list-style: none;
 }
 
 h3 {

@@ -255,10 +255,17 @@
 }
 
 .nav-item-active {
-  /* Sesuai mockup: state aktif nav pakai hijau (Mint/primary), bukan
-     Lemon. --color-nav-active tidak dipakai lagi di sini, tapi tetap
-     didefinisikan di tokens.css untuk kompatibilitas kalau dibutuhkan lagi. */
-  color: var(--color-primary);
+  /* REDESIGN V2.0 (09-Redesign-Roadmap.md Tahap 2.2): state aktif nav
+     pakai lime (--color-accent), sesuai piyik-mind-redesign-mockup.html
+     (.nav-item.active { color: var(--accent) }) yang jadi rujukan warna
+     utama. Sebelumnya sempat dipakai --color-primary (navy) — komentar
+     lama bahkan masih menyebut "Mint" (istilah dari palet guideline V1
+     yang sudah usang), sudah tidak relevan lagi.
+     --color-nav-active di tokens.css sudah didefinisikan = --color-accent,
+     jadi sebenarnya bisa dipakai token itu langsung; var(--color-accent)
+     tetap dipilih di sini supaya konsisten literal dengan penamaan token
+     di mockup asli. */
+  color: var(--color-accent);
 }
 
 .nav-item-disabled {
@@ -302,50 +309,26 @@
   display: none;
 }
 
-/* ---------- Input capture Home ----------
-   Input + tombol kirim jadi satu pill, tombol kirim di kanan dalam,
-   mirip command bar aplikasi chat — lebih hemat ruang dibanding dua
-   elemen terpisah. */
-.home-capture {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-soft);
-  padding: 6px 6px 6px 18px;
-  margin-bottom: 4px;
-}
-
-.home-capture-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: var(--font-size-body);
-  color: var(--color-text);
-  padding: 10px 0;
-}
-
-.home-capture-submit {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: #ffffff;
+/* ---------- Tombol "Catatan Baru" Beranda ----------
+   Menggantikan input capture lama (Tahap 7.1): sesuai mockup, sekarang
+   tombol biasa selebar penuh, bukan input yang langsung mengetik. */
+.home-quick-action {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform var(--transition-fast);
+  gap: 8px;
+  padding: 15px;
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--font-size-body);
+  margin-bottom: var(--space-lg);
 }
 
-.home-capture-submit:active {
-  transform: scale(0.92);
+.home-quick-action:active {
+  transform: scale(0.98);
+  background: #111827;
 }

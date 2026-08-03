@@ -1,65 +1,89 @@
 /* styles/tokens.css */
 /* Design tokens — satu sumber kebenaran untuk warna, radius, shadow,
-   tipografi, layout, dan animasi, sesuai 07-UI-Guidelines.md.
-   Dipisah dari main.css/home.css karena satu file = satu tanggung jawab
-   (Structure.md). File ini wajib dimuat PALING AWAL, sebelum file CSS lain,
-   supaya variabelnya sudah tersedia. */
+   tipografi, layout, dan animasi.
+   ======================================================================
+   REDESIGN TOTAL V2.0 (lihat PIYIK_MIND_REDESIGN_TOTAL.md) — 07-UI-
+   Guidelines.md (hijau/sky/lavender, "Quiet Workspace") dinyatakan usang,
+   diganti sepenuhnya oleh sistem warna/tipografi/spacing baru di sini.
+   Nama variabel SENGAJA DIPERTAHANKAN SAMA seperti sebelumnya (cuma
+   NILAI-nya yang berubah) — supaya seluruh file CSS lain yang sudah
+   memakai var(--color-primary), var(--font-size-body), dst TIDAK perlu
+   diedit satu-satu. Ini Tahap 1 dari 4 tahap redesign (Tahap 1: token.
+   Tahap 2-4: Beranda, Catatan Baru, Detail — menyusul, dikerjakan satu
+   per satu).
+   Warna --color-lemon/sky/mint/coral/lavender TIDAK diubah — itu dipakai
+   khusus sebagai kode warna per TIPE catatan (lihat shared/note-type-
+   meta.js), bukan bagian dari redesign shell/chrome, jadi di luar scope
+   dokumen ini.
+   ====================================================================== */
 
 :root {
-  /* ---------- Palet dasar (07-UI-Guidelines.md -> Warna) ---------- */
+  /* ---------- Palet warna per TIPE catatan (di luar scope redesign,
+     lihat shared/note-type-meta.js) — TIDAK berubah. ---------- */
   --color-lemon: #ffd54f;
   --color-sky: #4fc3f7;
   --color-mint: #62b43d;
   --color-coral: #ffa65e;
   --color-lavender: #b39ddb;
-  --color-ink: #263238;
-  --color-grey: #eceff1;
+  --color-grey: #e5e7eb; /* disamakan ke Border baru (#E5E7EB) redesign V2 */
 
-  /* ---------- Warna semantik (dipetakan dari palet dasar di atas) ---- */
-  --color-bg: #ffffff;
-  --color-card: #ffffff;
-  --color-border: var(--color-grey);
+  /* ---------- Warna shell/chrome (REDESIGN V2.0) ---------- */
+  --color-bg: #ffffff; /* Background */
+  --color-card: #f8fafc; /* Surface — dulu putih polos, sekarang beda tipis dari bg */
+  --color-border: #e5e7eb; /* Border */
 
-  --color-primary: var(--color-ink); /* tombol utama, FAB */
-  --color-secondary: var(--color-sky);
-  --color-warning: var(--color-coral); /* kartu "Ide" & status peringatan */
-  --color-danger: #ff8787; /* aksi hapus — di luar palet brand, khusus destructive */
-  --color-nav-active: var(--color-lemon); /* ikon aktif di bottom nav */
+  --color-primary: #1f2937; /* dark navy — tombol utama, FAB, bubble user */
+  --color-accent: #84cc16; /* lime green — dipakai utk state aktif (nav, dsb) */
+  --color-secondary: var(--color-sky); /* tetap dipakai utk badge tipe catatan */
+  --color-warning: var(--color-coral);
+  --color-danger: #ff8787;
+  --color-nav-active: var(--color-accent); /* dulu lemon, sekarang lime (redesign V2) */
 
-  --color-text: var(--color-ink);
+  --color-text: #111827; /* Text Primary */
+  --color-text-muted: #6b7280; /* Text Secondary */
 
-  /* Turunan: teks sekunder/caption & versi "soft" (tint) warna aksen untuk
-     background chip ikon dsb. Tidak disebutkan eksplisit di guideline,
-     dibuat dari warna di atas supaya tetap konsisten satu sumber. */
-  --color-text-muted: #6b7780;
-  --color-primary-soft: rgba(98, 180, 61, 0.18);
+  --color-primary-soft: rgba(31, 41, 55, 0.08);
+  --color-accent-soft: #ecfccb;
   --color-secondary-soft: rgba(79, 195, 247, 0.16);
   --color-warning-soft: rgba(255, 166, 94, 0.2);
   --color-danger-soft: rgba(255, 135, 135, 0.16);
   --color-lavender-soft: rgba(179, 157, 219, 0.2);
   --color-lemon-soft: rgba(255, 213, 79, 0.35);
 
-  /* ---------- Radius (07-UI-Guidelines.md -> Radius) ---------- */
-  --radius-card: 16px;
-  --radius-button: 14px;
-  --radius-input: 14px;
-  --radius-full: 999px; /* untuk elemen bulat penuh: badge, FAB, avatar */
+  /* ---------- Radius (REDESIGN V2.0) ---------- */
+  --radius-card: 20px;
+  --radius-button: 18px;
+  --radius-input: 16px;
+  --radius-fab: 24px; /* token baru — dipakai saat FAB di-redesign (Tahap 2) */
+  --radius-full: 999px; /* elemen bulat penuh: badge, avatar */
 
-  /* ---------- Shadow (07-UI-Guidelines.md -> Shadow: "sangat halus") --- */
+  /* ---------- Shadow — tetap sangat halus ---------- */
   --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.04);
 
-  /* ---------- Tipografi (07-UI-Guidelines.md -> Typography) ---------- */
-  --font-heading: "Poppins", system-ui, -apple-system, sans-serif; /* Judul */
-  --font-body: "Inter", system-ui, -apple-system, sans-serif; /* Konten */
+  /* ---------- Tipografi (REDESIGN V2.0) ---------- */
+  --font-heading: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif; /* dulu Poppins */
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
 
-  --font-size-heading: 24px;
-  --font-size-title: 18px;
-  --font-size-body: 16px;
-  --font-size-caption: 14px;
+  --font-size-app-title: 32px; /* token baru — judul level-app (mis. "Piyik Mind") */
+  --font-size-heading: 24px; /* Section title */
+  --font-size-title: 16px; /* Card title (dulu 18px) */
+  --font-size-body: 14px; /* dulu 16px */
+  --font-size-caption: 12px; /* dulu 14px */
 
-  /* ---------- Layout (07-UI-Guidelines.md -> Layout) ---------- */
+  /* ---------- Spacing scale (REDESIGN V2.0) — token baru, dipakai
+     bertahap saat tiap layar di-redesign (belum menggantikan nilai px
+     langsung yang sudah ada di CSS lain, biar tidak sekaligus berubah
+     semua tanpa direview per layar). ---------- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* ---------- Layout ---------- */
   --layout-max-width: 430px;
 
-  /* ---------- Animasi (07-UI-Guidelines.md -> Animasi: 200ms, halus) --- */
+  /* ---------- Animasi ---------- */
   --transition-fast: 200ms ease;
 }
+

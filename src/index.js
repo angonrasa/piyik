@@ -2,7 +2,7 @@
 // Titik masuk aplikasi Piyik Brain
 
 import { checkDatabase } from "./core/db.js";
-import { initNotes } from "./modules/notes/notes.controller.js";
+import { initNotes, goToNewNote } from "./modules/notes/notes.controller.js";
 import { initSettings } from "./modules/settings/settings.controller.js";
 import { initAbout } from "./modules/about/about.controller.js";
 import { initHome } from "./modules/home/home.controller.js";
@@ -29,8 +29,13 @@ async function init() {
     initSettings();
     initAbout();
     initChat();
-    // Home adalah tampilan awal aplikasi.
     initHome();
+    // Editor (form catatan baru) adalah tampilan awal aplikasi, bukan Home
+    // -- sesuai keputusan di piyik-mind-redesign-mockup.html ("Sekarang
+    // app dibuka langsung ke Editor, bukan Beranda"). Dipanggil paling
+    // akhir supaya jadi view yang benar-benar tampil (lihat catatan race
+    // condition di initHome() & initNotes()).
+    goToNewNote();
   } catch (error) {
     // Menangkap error tak terduga apa pun, supaya tidak gagal diam-diam.
     statusEl.textContent = `Terjadi kesalahan: ${error.message}`;

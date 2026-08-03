@@ -1,7 +1,10 @@
 /* src/styles/about.css
    Style khusus untuk view-about yang belum tercakup di settings.css.
    Struktur card/row/group di halaman ini sengaja reuse class settings-*
-   supaya konsisten dan tidak duplikasi style. */
+   supaya konsisten dan tidak duplikasi style.
+   REDESIGN V2.0 (09-Redesign-Roadmap.md Tahap 7.2): file ini tadinya
+   satu-satunya yang 100% legacy (font Poppins hardcode, warna hex lama
+   dari palet hijau/sky/lavender V1). Sekarang sudah full tokenized. */
 
 .about-hero {
   display: flex;
@@ -18,20 +21,20 @@
 }
 
 .about-hero-title {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 600;
-  color: #222222;
+  color: var(--color-text);
   margin: 0;
 }
 
 .about-hero-title-accent {
-  color: #6ccb5f;
+  color: var(--color-accent);
 }
 
 .about-hero-version {
-  font-size: 14px;
-  color: #8a8a8a;
+  font-size: var(--font-size-body);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -39,7 +42,7 @@
    dengan halaman Settings, jadi override-nya dibatasi ke #view-about saja
    supaya tidak mengubah tampilan Settings. */
 #view-about .settings-row-label {
-  font-size: 14px;
+  font-size: var(--font-size-body);
 }
 
 .about-philosophy {
@@ -47,9 +50,9 @@
 }
 
 .about-philosophy p {
-  font-size: 14px;
+  font-size: var(--font-size-body);
   line-height: 1.6;
-  color: #444444;
+  color: var(--color-text);
   margin: 0 0 12px;
 }
 
@@ -59,16 +62,16 @@
 
 .about-tagline {
   text-align: center;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-style: italic;
   line-height: 1.5;
-  color: #666666;
+  color: var(--color-text-muted);
   margin: 8px 0 0;
 }
 
 .about-credit {
   text-align: center;
   font-size: 11px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 8px 0 24px;
 }

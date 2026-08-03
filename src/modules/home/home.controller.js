@@ -22,33 +22,22 @@ async function loadHome() {
 }
 
 /**
- * Membuka form catatan baru dari input capture di Home.
- * Catatan: teks yang diketik pengguna belum diteruskan sebagai judul —
- * modul notes belum punya cara menerima judul awal dari luar. Ini sengaja
- * dibiarkan sederhana dulu (lihat Backlog di 01-Piyik-Blueprint.md).
- */
-/**
- * Membuka form catatan baru dari input capture di Home, membawa teks yang
- * sudah diketik pengguna sebagai judul awal.
- */
-function handleCaptureSubmit(event) {
-  event.preventDefault();
-  const input = document.getElementById("home-capture-input");
-  const draftTitle = input.value.trim();
-  input.value = "";
-  goToNewNote(draftTitle);
-}
-
-/**
  * Inisialisasi modul Home: pasang event listener form capture & bottom nav.
+ * Catatan: sengaja TIDAK memanggil loadHome() di sini. Editor (form catatan
+ * baru) adalah tampilan awal aplikasi sekarang, bukan Home (lihat index.js
+ * -> goToNewNote() dipanggil sebagai boot view terakhir). Memanggil
+ * loadHome() di sini dulu memicu race condition yang sama seperti yang
+ * dijelaskan di notes.controller.js -> initNotes(): loadHome() dan
+ * goToNewNote() sama-sama berujung ke showView(), dan siapa pun yang
+ * selesai duluan "menang" menentukan view yang benar-benar tampil. Data
+ * Home otomatis dimuat begitu pengguna membuka tab "Beranda" (lewat
+ * nav-home).
  */
 export function initHome() {
-  document.getElementById("home-capture-form").addEventListener("submit", handleCaptureSubmit);
+  document.getElementById("home-add-btn").addEventListener("click", () => goToNewNote());
 
   document.getElementById("nav-home").addEventListener("click", loadHome);
   document.getElementById("home-see-all").addEventListener("click", () => goToList(""));
   document.getElementById("nav-notes").addEventListener("click", () => goToList(""));
   document.getElementById("nav-add").addEventListener("click", () => goToNewNote());
-
-  loadHome();
 }

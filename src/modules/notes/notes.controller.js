@@ -87,6 +87,8 @@ function openNewForm(draftTitle = "") {
   if (draftTitle) fillFormTitle(draftTitle);
   resetSongForm();
   toggleSongFormFields("catatan");
+  closeSongPanel();
+  closeFormMenu();
   showView("form");
 }
 
@@ -105,6 +107,8 @@ async function openEditForm() {
   if (note.type === "song") {
     await loadSongFormForEdit(note.id);
   }
+  closeSongPanel();
+  closeFormMenu();
 
   showView("form");
 }
@@ -210,6 +214,47 @@ async function handleDelete() {
   await loadList();
 }
 
+// ---- Menu titik-tiga Editor (Tahap 7.1) ----
+// Aksi yang dulu tampil sebagai tombol Batal/Simpan penuh di footer, dan
+// field Editor Lagu yang dulu selalu inline, sekarang disatukan di
+// dropdown ini (lihat piyik-mind-redesign-mockup.html: editor cuma punya
+// header floating back + titik-tiga, tanpa footer/field tambahan).
+const formMenuBtn = document.getElementById("btn-form-menu");
+const formMenuDropdown = document.getElementById("form-menu-dropdown");
+const btnMenuSave = document.getElementById("btn-menu-save");
+const btnMenuDelete = document.getElementById("btn-menu-delete");
+const btnMenuSongDetail = document.getElementById("btn-menu-song-detail");
+const songFieldsEl = document.getElementById("song-fields");
+const btnSongPanelBack = document.getElementById("btn-song-panel-back");
+
+function closeFormMenu() {
+  formMenuDropdown.hidden = true;
+  formMenuBtn.setAttribute("aria-expanded", "false");
+}
+
+function updateFormMenuVisibility() {
+  // Hapus hanya relevan kalau sedang mengubah catatan yang sudah ada,
+  // bukan saat membuat catatan baru (belum ada apa pun untuk dihapus).
+  btnMenuDelete.hidden = selectedNoteId === null;
+  btnMenuSongDetail.hidden = inputTypeSelect.value !== "song";
+}
+
+function toggleFormMenu() {
+  const willOpen = formMenuDropdown.hidden;
+  if (willOpen) updateFormMenuVisibility();
+  formMenuDropdown.hidden = !willOpen;
+  formMenuBtn.setAttribute("aria-expanded", String(willOpen));
+}
+
+function openSongPanel() {
+  closeFormMenu();
+  songFieldsEl.classList.add("song-panel-open");
+}
+
+function closeSongPanel() {
+  songFieldsEl.classList.remove("song-panel-open");
+}
+
 /**
  * Inisialisasi modul Notes: pasang semua event listener dan render awal.
  */
@@ -224,6 +269,27 @@ export function initNotes() {
   document.getElementById("btn-edit").addEventListener("click", openEditForm);
   document.getElementById("btn-delete").addEventListener("click", handleDelete);
 
+  // ---- Menu titik-tiga Editor ----
+  formMenuBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleFormMenu();
+  });
+  document.addEventListener("click", (event) => {
+    if (!formMenuDropdown.hidden && !event.target.closest(".editor-menu")) {
+      closeFormMenu();
+    }
+  });
+  btnMenuSave.addEventListener("click", () => {
+    closeFormMenu();
+    document.getElementById("note-form").requestSubmit();
+  });
+  btnMenuDelete.addEventListener("click", () => {
+    closeFormMenu();
+    handleDelete();
+  });
+  btnMenuSongDetail.addEventListener("click", openSongPanel);
+  btnSongPanelBack.addEventListener("click", closeSongPanel);
+
   initRelations();
   initTodos();
   initSong();
@@ -232,6 +298,8 @@ export function initNotes() {
   inputTypeSelect.addEventListener("change", () => {
     updateContentMode(inputTypeSelect.value);
     toggleSongFormFields(inputTypeSelect.value);
+    closeSongPanel(); // ganti tipe dari Lagu -> panel yang mungkin masih terbuka ikut ditutup
+    updateFormMenuVisibility();
   });
 
   // ---- Autosave: cover semua jalan keluar dari form ----
@@ -254,12 +322,13 @@ export function initNotes() {
   // 3. App benar-benar ditutup / dinavigasi keluar (mis. tombol back OS,
   //    swipe close). Dipasang sebagai lapis tambahan di luar visibilitychange.
   window.addEventListener("pagehide", () => autoSaveForm());
-  // Catatan: sengaja TIDAK memanggil loadList() di sini. Home adalah
-  // tampilan awal aplikasi (lihat index.js -> initHome()). Data list akan
+  // Catatan: sengaja TIDAK memanggil loadList() di sini. Editor (form
+  // catatan baru) adalah tampilan awal aplikasi (lihat index.js ->
+  // goToNewNote() dipanggil sebagai boot view terakhir). Data list akan
   // otomatis dimuat begitu pengguna membuka tab "Catatan" (lewat goToList)
   // atau menekan "+ Baru"/"Batal". Memanggil loadList() di sini dulu pernah
-  // menyebabkan race condition: loadList() dan loadHome() sama-sama async,
-  // dan siapa pun yang selesai duluan "menang" menentukan view awal.
+  // menyebabkan race condition: loadList() dan showView() lain sama-sama
+  // async, dan siapa pun yang selesai duluan "menang" menentukan view awal.
 }
 
 /**
