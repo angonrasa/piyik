@@ -1,24 +1,3 @@
-# Piyik Mind
-
-> Ruang berpikir pribadi — bukan aplikasi produktivitas yang ramai.
-
-Piyik Mind adalah tempat menyimpan catatan, ide, tugas, dan pengingat, lalu menghubungkannya satu sama lain, sehingga kamu bisa mengingat kembali apa yang pernah kamu pikirkan.
-
-## Fitur
-
-- Membuat, mengubah, menghapus, dan mencari catatan
-- Memberi tipe pada catatan (Catatan, Tugas, Ide, Belanja, Orang, Pengingat)
-- Menghubungkan satu catatan dengan catatan lain
-- Chat sederhana untuk mencari & membuka catatan lewat bahasa sehari-hari
-- Backup & Restore data (file `.json`)
-- 100% offline, 100% privat — semua data tersimpan di perangkat
-
-## Screenshot
-
-### Splash Screen
-![Splash](docs/screenshots/splash.jpg)
-
-### Beranda
 ![Beranda](docs/screenshots/beranda.jpg)
 
 ### Editor Catatan
