@@ -46,12 +46,30 @@ function createIcon(innerMarkup, className) {
   return svg;
 }
 
+// Placeholder field "Judul", satu per tipe catatan. SSOT: dulu placeholder
+// judul tipe "song" diisi lewat song.view.js (setSongContentNoteMode), tapi
+// karena sekarang semua tipe butuh placeholder judul sendiri, semuanya
+// dipindah ke sini supaya satu tempat saja yang mengatur field "Judul"
+// (song.view.js sudah tidak menyentuh field ini lagi).
+const TITLE_PLACEHOLDERS = {
+  tugas: "Judul tugas...",
+  song: "Masukkan judul lagu...",
+  ide: "Judul ide...",
+  belanja: "Judul daftar belanja...",
+  orang: "Nama orang...",
+  pengingat: "Judul pengingat...",
+};
+const TITLE_PLACEHOLDER_DEFAULT = "Judul catatan...";
+
 /**
- * Menyesuaikan label & placeholder textarea "Isi" tergantung tipe yang dipilih.
- * Dipanggil tiap kali dropdown tipe berubah.
+ * Menyesuaikan label & placeholder textarea "Isi", serta placeholder field
+ * "Judul", tergantung tipe yang dipilih. Dipanggil tiap kali dropdown tipe
+ * berubah.
  * @param {string} type
  */
 export function updateContentMode(type) {
+  inputTitle.placeholder = TITLE_PLACEHOLDERS[type] ?? TITLE_PLACEHOLDER_DEFAULT;
+
   if (type === "tugas") {
     inputContentLabel.textContent = "Checklist";
     inputContent.placeholder = CHECKLIST_PLACEHOLDER;

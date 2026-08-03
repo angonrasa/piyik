@@ -26,13 +26,13 @@ const EXAMPLE_LYRICS =
   "Gm                              A\n" +
   "Tunduk sujud...dalam kuasa-Nya";
 
-// Field yang dipakai bersama semua tipe catatan (bukan khusus song), tapi
-// tampilannya disesuaikan sedikit untuk tipe "song" mengikuti mockup:
-// placeholder judul & mode counter pada field "Catatan (opsional)".
-const titleInputEl = document.getElementById("input-title");
+// Field "Catatan (opsional)" dipakai bersama semua tipe catatan, tapi
+// tampilannya disesuaikan sedikit untuk tipe "song" mengikuti mockup
+// (mode counter, lihat setSongContentNoteMode). Placeholder field "Judul"
+// sekarang jadi tanggung jawab notes.view.js (updateContentMode) untuk
+// semua tipe termasuk song, jadi tidak lagi diurus di sini.
 const contentInputEl = document.getElementById("input-content");
 const contentCounterEl = document.getElementById("input-content-counter");
-const TITLE_SONG_PLACEHOLDER = "Masukkan judul lagu...";
 const CONTENT_NOTE_SONG_PLACEHOLDER = "Catatan bebas seputar lagu ini...";
 const CONTENT_NOTE_MAXLENGTH = 300;
 
@@ -182,27 +182,18 @@ export function setSongFieldsVisible(visible) {
 }
 
 /**
- * Menyesuaikan placeholder Judul dan mode field "Catatan (opsional)" —
- * kedua field ini dipakai bersama semua tipe catatan, jadi hanya diberi
- * teks/batas khusus lagu selama tipe "song" yang aktif. Dipanggil dari
- * tempat yang sama dengan setSongFieldsVisible (lihat toggleSongFormFields
- * di song.controller.js).
+ * Menyesuaikan mode field "Catatan (opsional)" — dipakai bersama semua
+ * tipe catatan, jadi hanya diberi teks/batas khusus lagu selama tipe
+ * "song" yang aktif. Dipanggil dari tempat yang sama dengan
+ * setSongFieldsVisible (lihat toggleSongFormFields di song.controller.js).
  * @param {boolean} active
  */
 export function setSongContentNoteMode(active) {
-  titleInputEl.placeholder = active ? TITLE_SONG_PLACEHOLDER : "";
-
   if (active) {
     contentInputEl.maxLength = CONTENT_NOTE_MAXLENGTH;
     contentInputEl.placeholder = CONTENT_NOTE_SONG_PLACEHOLDER;
   } else {
     contentInputEl.removeAttribute("maxlength");
-    // Placeholder untuk tipe non-song adalah tanggung jawab
-    // updateContentMode() di notes.view.js (per tipe: catatan/ide/belanja/
-    // orang/pengingat/tugas). Jangan ditimpa jadi "" di sini — dulu baris
-    // ini yang bikin placeholder tipe lain selalu hilang, karena
-    // toggleSongFormFields() dipanggil setelah updateContentMode() di
-    // notes.controller.js.
   }
   contentCounterEl.hidden = !active;
   updateContentCounter();
