@@ -14,10 +14,13 @@
   align-items: center;
   justify-content: center;
 
-  /* Layar hitam untuk momen "menggambar" — pakai token supaya tetap
-     bisa disesuaikan lewat tokens.css, bukan hardcode #000. */
-  background: var(--color-text-muted);
-  transition: opacity 300ms ease; /* FADE_OUT_MS di splash.view.js — jaga tetap sama */
+  /* Kanvas gelap untuk momen "menggambar". Sebelumnya pakai
+     --color-text-muted (abu #6B7280) padahal komentar bilang "hitam" —
+     tidak konsisten. Ganti ke --color-primary (navy #1F2937, warna FAB/
+     bubble user) supaya splash terasa jadi bagian dari brand, bukan abu
+     generik atau hitam pekat yang terasa keras. */
+  background: var(--color-text);
+  transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1); /* FADE_OUT_MS di splash.view.js — jaga tetap sama */
 }
 
 #splash-screen.splash-hide {
@@ -25,14 +28,25 @@
   pointer-events: none;
 }
 
-/* Tidak ada lagi kotak/box di sekeliling logo — sesuai konsep "layar
-   hitam, titik putih kecil menggambar logo", bukan logo di dalam kartu
+/* Tidak ada lagi kotak/box di sekeliling logo — sesuai konsep "kanvas
+   navy, titik lime kecil menggambar logo", bukan logo di dalam kartu
    berwarna. Animasi menggambarnya sendiri ada di dalam file SVG. */
 .splash-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  /* Masuk pelan — skala 0.96→1 + fade, bukan langsung muncul penuh.
+     Gerakan kecil ini yang bikin splash terasa "menarik napas", bukan
+     cuma nongol, tapi tetap sangat halus (sejalan --shadow-soft, tidak
+     ada animasi berlebihan). */
+  opacity: 0;
+  transform: scale(0.96);
+  animation: splash-content-in 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes splash-content-in {
+  to { opacity: 1; transform: scale(1); }
 }
 
 .splash-logo-img {
@@ -42,7 +56,7 @@
 
 /* Muncul setelah logo + lingkaran luar selesai digambar (1850ms —
    harus sama dengan total durasi animasi di piyik-logo-animated.svg
-   sebelum fase diam). Warna putih karena background splash hitam. */
+   sebelum fase diam). Warna putih karena background splash navy gelap. */
 .splash-title {
   margin: 0;
   font-family: var(--font-heading);
@@ -51,15 +65,20 @@
   letter-spacing: 0.02em;
   color: #ffffff;
   opacity: 0;
-  animation: splash-title-in 350ms ease 1850ms forwards;
+  animation: splash-title-in 400ms cubic-bezier(0.16, 1, 0.3, 1) 1850ms forwards;
 }
 
 @keyframes splash-title-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .splash-content {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
   .splash-title {
     animation: none;
     opacity: 1;

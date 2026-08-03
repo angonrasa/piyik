@@ -1,0 +1,53 @@
+/* styles/logo-float.css
+   Animasi "ngayun" untuk logo (piyik-logo-badge.svg) saat dipakai di
+   luar splash — header Beranda, About, dsb. Beda tujuan dari
+   splash.css: splash cuma tampil sekali (logo "digambar"), ini logo
+   yang nongol terus-menerus, jadi animasinya loop pelan & tidak
+   mengganggu — sejalan design keyword "Calm" di 07-UI-Guidelines.md.
+
+   Kotak badge (rect navy) DIAM statis. Yang bergerak cuma dua bagian
+   logo di dalamnya (<path class="piyik-logo-part-1/2">), masing-masing
+   mengayun perlahan dengan timing sedikit beda biar terasa hidup,
+   bukan kaku gerak bareng.
+
+   Cara pakai:
+   1. SVG-nya WAJIB ditempel inline di HTML (copy-paste isi
+      piyik-logo-badge.svg apa adanya), bukan lewat <img src="...">.
+      CSS ini menargetkan <path> di dalam SVG, yang cuma bisa dijangkau
+      kalau SVG-nya inline.
+   2. Tempel <svg class="piyik-logo piyik-logo-swing" ...>...</svg>
+      di Beranda & About.
+   3. Atur ukurannya lewat class pembungkus, mis.:
+        .piyik-logo { width: 96px; height: 96px; }
+      (warna badge sudah fix navy+putih di dalam file SVG-nya sendiri,
+      tidak perlu diatur lewat CSS). */
+
+.piyik-logo-swing .piyik-logo-part {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: piyik-logo-swing 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Dua bagian dikasih durasi & delay beda supaya ayunannya nggak
+   sinkron persis — kesannya lebih natural, bukan seperti satu blok. */
+.piyik-logo-swing .piyik-logo-part-1 {
+  animation-duration: 4.5s;
+  animation-delay: 0s;
+}
+
+.piyik-logo-swing .piyik-logo-part-2 {
+  animation-duration: 5.2s;
+  animation-delay: -1.4s;
+}
+
+@keyframes piyik-logo-swing {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piyik-logo-swing .piyik-logo-part {
+    animation: none;
+  }
+}

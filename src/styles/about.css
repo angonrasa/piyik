@@ -18,6 +18,8 @@
 .about-hero-logo {
   border-radius: 16px;
   margin-bottom: 8px;
+  width: 64px;
+  height: 64px;
 }
 
 .about-hero-title {
