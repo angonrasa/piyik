@@ -19,7 +19,10 @@ body {
   color: var(--color-text);
   height: 100dvh;
  overflow: hidden;
-  padding: 16px;
+  /* padding-top ditambah env(safe-area-inset-top) supaya konten (mis.
+     judul halaman) gak ketutup notch/dynamic island saat app di-install
+     sebagai PWA standalone. Sisi lain tetap 16px seperti semula. */
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 16px;
   overflow-wrap: break-word;
   /* Jaga-jaga supaya tidak ada elemen yang membuat body melebar ke samping
      (misal input/select yang lebarnya sedikit meleset dari 100%). */

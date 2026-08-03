@@ -52,6 +52,7 @@ import { showView } from "../../shared/view-switcher.js";
 import { detectIntent } from "./chat.intent.js";
 import { normalizeMessage } from "./chat.normalize.js";
 import { searchNotes, getAllNotes, createNote, deleteNote } from "../notes/notes.repository.js";
+import { openNote } from "../notes/notes.controller.js";
 import { getRelatedNotes } from "../relations/relations.repository.js";
 import { retrieveMemory } from "../memory/memory.retrieval.js";
 import { extractCause } from "../memory/memory.reflection.js";
@@ -117,11 +118,20 @@ async function handleSubmit(event) {
   const [reply] = await Promise.all([generateReply(text), delay(randomDelay)]);
   hideTypingIndicator();
 
-  await addBotMessage(reply);
+  await addBotMessage(reply, lastNoteRefs);
 
   const messages = await getAllMessages();
   renderMessages(messages);
 }
+
+// Tahap Chat Native Polish — mini-note-card: catatan yang mau ditampilkan
+// sebagai card di bawah balasan bot (bukan cuma disebut di teks). Dipakai
+// sebagai side-channel sederhana, sama polanya dengan chat-memory.js
+// (bukan diubah jadi return value generateReply() di semua cabang, supaya
+// diff tetap kecil — cuma 2 handler yang butuh: search_note & latest_note).
+// Direset di AWAL tiap generateReply() supaya balasan intent lain (help,
+// fallback, dst) tidak ikut menampilkan card dari giliran sebelumnya.
+let lastNoteRefs = [];
 
 /**
  * Menyusun balasan bot berdasarkan intent pesan user.
@@ -131,6 +141,8 @@ async function handleSubmit(event) {
  * @returns {Promise<string>}
  */
 async function generateReply(pesan) {
+  lastNoteRefs = [];
+
   const waitingReply = await handleWaitingAction(pesan);
   if (waitingReply) return waitingReply;
 
@@ -448,6 +460,7 @@ async function handleSearchNote(target) {
   }
 
   const titles = results.map((note) => note.title).join(", ");
+  lastNoteRefs = results;
   return pickRandom(SEARCH_FOUND_REPLIES)(results.length, titles);
 }
 
@@ -619,6 +632,7 @@ async function handleOpenNote(target, entities) {
   }
 
   updateContext({ currentNote: note });
+  lastNoteRefs = [note];
   return pickRandom(OPEN_FOUND_REPLIES)(note.title);
 }
 
@@ -654,6 +668,7 @@ async function handleShowRelation() {
   }
 
   const lines = related.map((n) => `- ${n.title}`).join("\n");
+  lastNoteRefs = related;
   return pickRandom(RELATION_FOUND_REPLIES)(lines);
 }
 
@@ -675,6 +690,7 @@ async function handleLatestNote() {
   if (notes.length === 0) return pickRandom(LATEST_EMPTY_REPLIES);
 
   const latest = notes.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+  lastNoteRefs = [latest];
   return pickRandom(LATEST_FOUND_REPLIES)(latest.title);
 }
 
@@ -728,10 +744,24 @@ async function handleClearChat() {
 }
 
 /**
+ * Klik pada mini-note-card (dirender chat.view.js dengan
+ * data-note-id="...") membuka detail catatan itu, pakai openNote() yang
+ * sama dipakai Home untuk hal serupa. Event delegation di container
+ * pesan supaya card yang dirender belakangan (hasil renderMessages
+ * berikutnya) tetap kepasang tanpa perlu attach ulang listener per card.
+ */
+function handleMiniNoteCardClick(event) {
+  const card = event.target.closest(".mini-note-card");
+  if (!card) return;
+  openNote(Number(card.dataset.noteId));
+}
+
+/**
  * Inisialisasi modul Chat: pasang event listener form & tab bottom nav.
  */
 export function initChat() {
   document.getElementById("chat-form").addEventListener("submit", handleSubmit);
   document.getElementById("nav-chat").addEventListener("click", loadChat);
   document.getElementById("btn-clear-chat").addEventListener("click", handleClearChat);
+  document.getElementById("chat-message-list").addEventListener("click", handleMiniNoteCardClick);
 }

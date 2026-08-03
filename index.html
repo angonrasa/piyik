@@ -2,18 +2,23 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Piyik Mind</title>
   <!-- Font sesuai UI-Guidelines.md: Judul pakai Poppins, isi pakai Inter.
        Hanya dipakai pada halaman Home & bottom nav (lihat home.css). -->
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#81C784">
+<!-- viewport-fit=cover di atas mengaktifkan env(safe-area-inset-*) supaya
+     konten gak ketutup notch/dynamic island (atas) atau home indicator
+     (bawah) saat app di-install sebagai PWA standalone di iOS. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500&display=swap"
     rel="stylesheet"
   />
-  <link rel="icon" type="image/png" href="./assets/icon/icon-192.png" />
+  <link rel="icon" type="image/png" href="./assets/icons/icon-192.png" />
   <link rel="stylesheet" href="src/styles/tokens.css" />
   <link rel="stylesheet" href="src/styles/main.css" />
   <link rel="stylesheet" href="src/styles/home.css" />

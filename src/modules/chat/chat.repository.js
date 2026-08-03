@@ -19,12 +19,17 @@ export async function addMessage(text) {
 /**
  * Menyimpan satu pesan balasan dari bot (lihat 05-Chat-Roadmap.md Tahap 2).
  * @param {string} text
+ * @param {Array<object>} [noteRefs] catatan yang mau ditampilkan sebagai
+ *   mini-note-card di bawah teks (Tahap Chat Native Polish — mini-note-card).
+ *   Opsional, tidak butuh perubahan skema Dexie (field tanpa index tetap
+ *   bisa disimpan apa adanya).
  * @returns {Promise<number>} id pesan yang baru dibuat
  */
-export async function addBotMessage(text) {
+export async function addBotMessage(text, noteRefs = []) {
   return db.chatMessages.add({
     sender: "bot",
     text,
+    noteRefs,
     createdAt: new Date(),
   });
 }
