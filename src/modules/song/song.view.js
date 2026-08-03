@@ -197,7 +197,12 @@ export function setSongContentNoteMode(active) {
     contentInputEl.placeholder = CONTENT_NOTE_SONG_PLACEHOLDER;
   } else {
     contentInputEl.removeAttribute("maxlength");
-    contentInputEl.placeholder = "";
+    // Placeholder untuk tipe non-song adalah tanggung jawab
+    // updateContentMode() di notes.view.js (per tipe: catatan/ide/belanja/
+    // orang/pengingat/tugas). Jangan ditimpa jadi "" di sini — dulu baris
+    // ini yang bikin placeholder tipe lain selalu hilang, karena
+    // toggleSongFormFields() dipanggil setelah updateContentMode() di
+    // notes.controller.js.
   }
   contentCounterEl.hidden = !active;
   updateContentCounter();

@@ -46,20 +46,13 @@
 
       <p class="home-greeting">Apa yang ingin kamu ingat hari ini?</p>
 
-      <form id="home-capture-form" class="home-capture">
-        <input
-          type="text"
-          id="home-capture-input"
-          class="home-capture-input"
-          placeholder="Ketik apa saja..."
-          autocomplete="off"
-        />
-        <button type="submit" class="home-capture-submit" aria-label="Tambah catatan baru">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </button>
-      </form>
+      <button type="button" id="home-add-btn" class="home-quick-action">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Catatan Baru
+      </button>
 
       <div class="home-recent-header">
         <h2 class="home-heading" id="home-recent-heading">Terbaru</h2>
@@ -165,21 +158,48 @@
     </section>
 
     <section id="view-form" hidden>
-      <div class="form-header">
-        <button type="button" id="btn-form-back" class="form-back" aria-label="Kembali">
+      <div class="editor-header">
+        <button type="button" id="btn-cancel" class="icon-btn" aria-label="Kembali">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 6l-6 6 6 6" />
           </svg>
         </button>
-        <h2 id="form-title">Catatan Baru</h2>
+
+        <!-- Menu titik-tiga (Tahap 7.1): menggantikan tombol Batal/Simpan
+             penuh di footer + toggle Detail Lagu yang dulu selalu inline.
+             Logika buka/tutup, isi menu dinamis (sembunyikan Hapus saat
+             catatan baru, sembunyikan Detail Lagu saat tipe bukan "song"),
+             dan klik-di-luar-untuk-tutup semuanya sudah ada di
+             notes.controller.js -> initNotes(). -->
+        <div class="editor-menu">
+          <button type="button" id="btn-form-menu" class="icon-btn" aria-haspopup="true" aria-expanded="false" aria-label="Menu lainnya">
+            <span class="autosave-dot" aria-hidden="true"></span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+          <div id="form-menu-dropdown" class="editor-menu-dropdown" hidden>
+            <button type="button" id="btn-menu-song-detail" class="editor-menu-item" hidden>Detail Lagu</button>
+            <button type="button" id="btn-menu-save" class="editor-menu-item">Simpan</button>
+            <button type="button" id="btn-menu-delete" class="editor-menu-item editor-menu-item-danger" hidden>Hapus</button>
+          </div>
+        </div>
       </div>
+
+      <!-- Dipertahankan hanya untuk aksesibilitas (screen reader) - mockup
+           tidak menampilkan judul screen secara visual di Editor, lihat
+           komentar di main.css dekat .editor-header. -->
+      <h2 id="form-title" class="sr-only">Catatan Baru</h2>
+
       <form id="note-form">
         <input type="hidden" id="input-id" />
 
-        <label for="input-title">Judul</label>
-        <input type="text" id="input-title" required />
+        <label for="input-title" class="sr-only">Judul</label>
+        <input class="title-input" type="text" id="input-title" placeholder="Judul" required autofocus />
 
-        <label for="input-type">Tipe</label>
+        <label for="input-type" class="sr-only">Tipe</label>
         <div class="type-select-wrap" id="type-select">
           <span class="type-select-icon" id="type-select-icon"></span>
           <select id="input-type">
@@ -196,11 +216,19 @@
           </svg>
         </div>
 
-        <label for="input-content" id="input-content-label">Isi</label>
-        <textarea id="input-content" rows="6"></textarea>
+        <label for="input-content" id="input-content-label" class="sr-only">Isi</label>
+        <textarea class="content-textarea" id="input-content" placeholder="Tulis apa yang ingin kamu ingat..."></textarea>
         <span id="input-content-counter" class="input-content-counter" hidden></span>
 
         <div id="song-fields" hidden>
+          <div class="song-panel-header">
+            <button type="button" id="btn-song-panel-back" class="icon-btn" aria-label="Tutup panel lagu">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 6l-6 6 6 6" />
+              </svg>
+            </button>
+            <h2>Detail Lagu</h2>
+          </div>
           <div class="song-editor-header">
             <div>
               <span class="song-editor-label">Editor Lagu</span>
@@ -243,10 +271,6 @@
           </div>
         </div>
 
-        <div class="form-actions">
-          <button type="button" id="btn-cancel">Batal</button>
-          <button type="submit">Simpan</button>
-        </div>
       </form>
     </section>
 
@@ -634,16 +658,7 @@
   <script type="module" src="src/index.js"></script>
   <script type="module" src="src/shared/type-select.js"></script>
 
-  <!-- Tombol back di header form (mockup baru) sengaja tidak dikaitkan
-       langsung ke logika navigasi di notes.controller.js — cukup memicu
-       klik #btn-cancel yang sudah ada, supaya perilakunya (kembali ke
-       list/detail) tetap satu sumber kebenaran dan tidak duplikasi logika. -->
-  <script type="module">
-    document.getElementById("btn-form-back").addEventListener("click", () => {
-      document.getElementById("btn-cancel").click();
-    });
-  </script>
-  <script>
+  <!-- script>
     if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
@@ -654,6 +669,9 @@
     }
   });
 }
-  </script>
+  </script -->
+  
+   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 </body>
 </html>

@@ -38,6 +38,32 @@
   margin-bottom: 16px;
 }
 
+/* Tombol "+ Catatan Baru" — pengganti home-capture-form lama (Tahap 2
+   redesign Beranda, lihat PIYIK_MIND_REDESIGN_TOTAL.md). Mengikuti mockup:
+   satu tombol quick-action, bukan input capture. */
+.home-quick-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: none;
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.home-quick-action:active {
+  transform: scale(0.98);
+}
+
 .home-heading {
   font-family: var(--font-heading);
   font-weight: 600;

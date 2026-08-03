@@ -228,11 +228,13 @@ const songFieldsEl = document.getElementById("song-fields");
 const btnSongPanelBack = document.getElementById("btn-song-panel-back");
 
 function closeFormMenu() {
+  if (!formMenuDropdown || !formMenuBtn) return;
   formMenuDropdown.hidden = true;
   formMenuBtn.setAttribute("aria-expanded", "false");
 }
 
 function updateFormMenuVisibility() {
+  if (!btnMenuDelete || !btnMenuSongDetail) return;
   // Hapus hanya relevan kalau sedang mengubah catatan yang sudah ada,
   // bukan saat membuat catatan baru (belum ada apa pun untuk dihapus).
   btnMenuDelete.hidden = selectedNoteId === null;
@@ -240,6 +242,7 @@ function updateFormMenuVisibility() {
 }
 
 function toggleFormMenu() {
+  if (!formMenuDropdown || !formMenuBtn) return;
   const willOpen = formMenuDropdown.hidden;
   if (willOpen) updateFormMenuVisibility();
   formMenuDropdown.hidden = !willOpen;
@@ -270,25 +273,30 @@ export function initNotes() {
   document.getElementById("btn-delete").addEventListener("click", handleDelete);
 
   // ---- Menu titik-tiga Editor ----
-  formMenuBtn.addEventListener("click", (event) => {
+  // Catatan: markup menu ini (btn-form-menu dkk) belum ada di index.html —
+  // baru akan ditambahkan saat Tahap 3 redesign Editor (lihat mockup,
+  // editor-header dengan icon-btn titik-tiga). Di-guard pakai optional
+  // chaining supaya initNotes() tidak crash duluan sebelum sempat
+  // menginisialisasi sisanya (search, filter, autosave, dst).
+  formMenuBtn?.addEventListener("click", (event) => {
     event.stopPropagation();
     toggleFormMenu();
   });
   document.addEventListener("click", (event) => {
-    if (!formMenuDropdown.hidden && !event.target.closest(".editor-menu")) {
+    if (formMenuDropdown && !formMenuDropdown.hidden && !event.target.closest(".editor-menu")) {
       closeFormMenu();
     }
   });
-  btnMenuSave.addEventListener("click", () => {
+  btnMenuSave?.addEventListener("click", () => {
     closeFormMenu();
     document.getElementById("note-form").requestSubmit();
   });
-  btnMenuDelete.addEventListener("click", () => {
+  btnMenuDelete?.addEventListener("click", () => {
     closeFormMenu();
     handleDelete();
   });
-  btnMenuSongDetail.addEventListener("click", openSongPanel);
-  btnSongPanelBack.addEventListener("click", closeSongPanel);
+  btnMenuSongDetail?.addEventListener("click", openSongPanel);
+  btnSongPanelBack?.addEventListener("click", closeSongPanel);
 
   initRelations();
   initTodos();

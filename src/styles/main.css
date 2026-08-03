@@ -378,6 +378,12 @@ body {
   transform: none;
 }
 
+/* display:flex di atas menang atas [hidden] bawaan browser, jadi harus
+   ditulis eksplisit di sini -- pola sama dengan #song-fields[hidden]. */
+.editor-menu-dropdown[hidden] {
+  display: none;
+}
+
 .editor-menu-item-danger {
   color: var(--color-danger);
 }
@@ -478,6 +484,11 @@ body {
   align-items: center;
   gap: 6px;
   width: auto;
+  /* #note-form adalah flex column tanpa align-items custom (default:
+     stretch). Flex item selalu di-"blockify" browser walau class-nya
+     inline-flex, jadi tanpa baris ini elemen ini ikut ditarik selebar
+     form -> jadi bar lebar, bukan pill kecil seperti mockup. */
+  align-self: flex-start;
   margin: 2px 0 20px;
   padding: 4px 26px 4px 6px;
   border: none;

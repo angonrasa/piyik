@@ -62,9 +62,22 @@ export function updateContentMode(type) {
     // mode ini (lihat setSongContentNoteMode), jadi tidak disentuh di sini.
     inputContentLabel.textContent = "Catatan";
     inputContent.placeholder = "Catatan bebas seputar lagu ini (opsional)";
-  } else {
+  } else if (type === "ide") {
     inputContentLabel.textContent = "Isi";
-    inputContent.placeholder = "";
+    inputContent.placeholder = "Tuliskan ide yang terlintas...";
+  } else if (type === "belanja") {
+    inputContentLabel.textContent = "Isi";
+    inputContent.placeholder = "Satu baris = satu barang, contoh:\nBeras\nTelur\nSabun";
+  } else if (type === "orang") {
+    inputContentLabel.textContent = "Isi";
+    inputContent.placeholder = "Info tentang orang ini, misal kelas, kontak, catatan penting";
+  } else if (type === "pengingat") {
+    inputContentLabel.textContent = "Isi";
+    inputContent.placeholder = "Apa yang perlu diingat, dan kapan?";
+  } else {
+    // "catatan" dan tipe lain di luar daftar di atas
+    inputContentLabel.textContent = "Isi";
+    inputContent.placeholder = "Tulis apa saja yang ingin kamu simpan...";
   }
 
   // Untuk tipe selain "song", catatan bersifat bebas panjang (lihat
