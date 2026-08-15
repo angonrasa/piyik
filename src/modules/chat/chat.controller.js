@@ -411,14 +411,20 @@ async function buildContradictionMention(topNote) {
   return CONTRADICTION_MENTION_TEMPLATE(pair.keyword);
 }
 
-// Variasi kalimat fallback saat intent gagal dikenali (Tahap B.1 -
-// 06-Chat-Polish-Roadmap.md). Kasih contoh perintah pakai judul catatan
-// asli dari DB (sama seperti handleHelp) supaya lebih relate.
-const FALLBACK_REPLIES = [
-  (contoh) => `Waduh, aku belum ngerti maksudmu. Coba bilang "cari ${contoh}" atau "buka ${contoh}" deh.`,
-  (contoh) => `Hmm, belum nangkep nih. Coba pakai kata kayak "cari" atau "buka", contoh: "cari ${contoh}".`,
-  (contoh) => `Duh, belum paham maksudmu. Ketik "bantuan" buat liat contoh perintah, atau coba "cari ${contoh}".`,
-];
+// Tahap AI-1.1 (09-roadmap-ai-integration-v2-1.md) — placeholder sementara,
+// menggantikan FALLBACK_REPLIES generik di bawah TOTAL (bukan cuma
+// di-log ke console), supaya titik masuk "intent gagal & retrieval
+// kosong -> jalur AI" kelihatan nyata di chat sekarang. Nanti diganti
+// jawaban AI sungguhan di AI-4.3, tanpa ubah struktur di sekitarnya
+// (rule engine tetap prioritas di atas, tidak berubah).
+const AI_PLACEHOLDER_REPLY = "AI belum aktif, ini akan dijawab AI nanti.";
+
+// Tahap AI-1.1: FALLBACK_REPLIES (dulu dipakai handleFallback() saat
+// retrieval kosong) SENGAJA dihapus, bukan cuma dibiarkan nganggur —
+// sudah digantikan AI_PLACEHOLDER_REPLY, dan array kalimat lama masih
+// utuh di riwayat git kalau nanti perlu revert (mis. AI dimatikan lagi
+// via toggle Settings di AI-6, walau itu beda mekanisme — lihat catatan
+// AI-6 di roadmap).
 
 // Variasi kalimat fallback saat masih ada hasil pencarian terakhir
 // (Tahap B.2). Arahkan user untuk membuka salah satu hasil tadi.
@@ -534,9 +540,11 @@ async function handleFallback(pesan) {
     return extras ? `${recall}\n\n${extras}` : recall;
   }
 
-  const notes = await getAllNotes();
-  const contoh = notes.length > 0 ? pickRandom(notes).title : "gunung api";
-  return pickRandom(FALLBACK_REPLIES)(contoh);
+  // Tahap AI-1.1: dulu ambil `notes`/`contoh` buat contoh perintah di
+  // FALLBACK_REPLIES. Sudah tidak dipakai sejak balasan diganti
+  // placeholder AI di bawah — dihapus dulu (YAGNI), gampang ditambah
+  // lagi kalau AI-2 (context builder) butuh bentuk serupa nanti.
+  return AI_PLACEHOLDER_REPLY;
 }
 
 /**
