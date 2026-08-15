@@ -1,10 +1,16 @@
 // modules/memory/memory.reflection.js
 //
 // Tahap 3 — Reflection Engine (05-Roadmap-Reakurasi.md).
-// Milestone 3.1: HANYA kategori "sebab" yang dikerjakan (deteksi literal
-// kata "karena"). 4 kategori lain di roadmap asli (orang/tempat/aktivitas/
-// proyek) dipindah ke Backlog — butuh NLP buat akurat, nabrak prinsip
-// "Tidak ada AI generatif/LLM" (01-Piyik-Blueprint.md).
+// File ini fokus pada kategori "sebab" saja — ekstraksi klausa lengkap
+// setelah kata "karena" untuk kalimat balasan yang lebih detail
+// (lihat extractCause()).
+//
+// 4 kategori lain (orang/tempat/aktivitas/proyek) TIDAK di-backlog —
+// sudah diimplementasikan dan aktif, tapi ada di memory.similarity.js,
+// bukan di sini. Semuanya tetap rule-based murni (keyword matching &
+// vocab dari data yang ada), TANPA NLP/AI — jadi tidak melanggar
+// prinsip "Tidak ada AI generatif/LLM" (01-Piyik-Blueprint.md).
+// Lihat memory.similarity.js untuk detail kelima kategori.
 //
 // Murni cocok kata literal, konsisten sama chat.intent.js / chat.keyword.js.
 

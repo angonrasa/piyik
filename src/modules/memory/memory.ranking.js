@@ -11,6 +11,10 @@
 
 const TIER_KEYWORD_MATCH = 10000;
 const TIER_DIRECT_RELATION = 1000;
+// Tahap 4 — Memory Chain (05-Roadmap-Reakurasi.md). Relasi 2 langkah
+// (A -> B -> C) selalu kalah dari relasi langsung (A -> B), tapi tetap
+// lebih relevan daripada sekadar tag/tipe sama.
+const TIER_CHAIN_RELATION = 500;
 const TIER_TAG_MATCH = 100;
 const TIER_TYPE_MATCH = 10;
 
@@ -23,6 +27,10 @@ const RECENCY_SCALE = 1e-15;
  * @property {object} note
  * @property {boolean} isKeywordMatch - true kalau ketemu langsung via searchNotes
  * @property {boolean} isDirectRelation - true kalau ketemu via getRelatedNotes
+ *   (1 langkah dari keyword match)
+ * @property {boolean} [isChainRelation] - true kalau ketemu via 2 langkah
+ *   relasi (Tahap 4 — Memory Chain). Opsional, default falsy untuk
+ *   candidate lama yang belum diset field ini.
  * @property {object|null} seedNote - catatan asal penelusuran relasi,
  *   null kalau candidate ini sendiri hasil keyword match
  */
@@ -44,6 +52,7 @@ function scoreCandidate(candidate) {
 
   if (candidate.isKeywordMatch) score += TIER_KEYWORD_MATCH;
   if (candidate.isDirectRelation) score += TIER_DIRECT_RELATION;
+  if (candidate.isChainRelation) score += TIER_CHAIN_RELATION;
 
   // Tag & tipe cuma masuk akal dibandingkan TERHADAP sesuatu — di sini
   // terhadap seedNote (catatan asal relasi). Kalau candidate ini keyword

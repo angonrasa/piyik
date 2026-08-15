@@ -20,9 +20,6 @@ Piyik Mind adalah tempat menyimpan catatan, ide, tugas, dan pengingat, lalu meng
 ### Splash Screen
 ![Splash](docs/screenshots/splash.jpg)
 
-### Beranda
-![Beranda](docs/screenshots/beranda.jpg)
-
 ### Editor Catatan
 ![Editor](docs/screenshots/editor.jpg)
 

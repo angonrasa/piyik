@@ -46,6 +46,10 @@ import { getAllSongDetailsMap } from "../song/song.repository.js";
 
 let selectedNoteId = null;
 let cachedNotes = [];
+// Timer debounce untuk trigger "berhenti mengetik 500ms" (lihat
+// scheduleAutoSave). Dipisah dari pemanggilan autoSaveForm() langsung
+// yang sudah ada untuk trigger keluar halaman / app di-background.
+let autoSaveTimer = null;
 
 const searchInput = document.getElementById("search-input");
 const filterTypeSelect = document.getElementById("filter-type");
@@ -201,6 +205,22 @@ async function autoSaveForm() {
   }
 }
 
+/**
+ * Trigger autosave "berhenti mengetik 500ms" (Phase 1 - Editor Dasar).
+ * Dipanggil lewat event delegation "input" di #note-form (lihat
+ * initNotes()) - jadi otomatis nyala untuk semua field form (judul, isi,
+ * lirik lagu, dst) tanpa perlu listener terpisah per field.
+ *
+ * Dipisah dari trigger autoSaveForm() langsung yang sudah ada (keluar
+ * halaman / app di-background) karena trigger itu perlu simpan SEGERA,
+ * sedangkan ini sengaja ditunda supaya tidak menyimpan di setiap
+ * ketukan huruf.
+ */
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSaveForm, 500);
+}
+
 async function handleDelete() {
   if (selectedNoteId === null) return;
   const confirmed = confirm("Hapus catatan ini?");
@@ -263,6 +283,7 @@ function closeSongPanel() {
  */
 export function initNotes() {
   document.getElementById("btn-cancel").addEventListener("click", async () => {
+    clearTimeout(autoSaveTimer);
     await autoSaveForm();
     loadList();
   });
@@ -312,24 +333,38 @@ export function initNotes() {
 
   // ---- Autosave: cover semua jalan keluar dari form ----
 
+  // 0. Berhenti mengetik 500ms (Phase 1 spec). "input" bubbling dari
+  //    field mana pun di dalam form (judul, isi, lirik lagu, dst) cukup
+  //    didengar sekali di sini lewat event delegation.
+  document.getElementById("note-form").addEventListener("input", scheduleAutoSave);
+
   // 1. Pindah ke tab lain lewat bottom nav / FAB sementara form masih terbuka.
   //    Listener tambahan ini tidak mengganggu handler navigasi asli (di
   //    index.js) - cuma numpang dengar klik yang sama untuk memicu simpan.
   ["nav-home", "nav-chat", "nav-notes", "nav-settings", "nav-add"].forEach((id) => {
     const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", () => autoSaveForm());
+    if (btn) btn.addEventListener("click", () => {
+      clearTimeout(autoSaveTimer);
+      autoSaveForm();
+    });
   });
 
   // 2. App dibackground atau layar dikunci - ini sinyal paling andal di HP
   //    untuk "aplikasi ditinggalkan", jauh lebih dipercaya daripada
   //    beforeunload yang sering tidak sempat jalan di mobile.
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") autoSaveForm();
+    if (document.visibilityState === "hidden") {
+      clearTimeout(autoSaveTimer);
+      autoSaveForm();
+    }
   });
 
   // 3. App benar-benar ditutup / dinavigasi keluar (mis. tombol back OS,
   //    swipe close). Dipasang sebagai lapis tambahan di luar visibilitychange.
-  window.addEventListener("pagehide", () => autoSaveForm());
+  window.addEventListener("pagehide", () => {
+    clearTimeout(autoSaveTimer);
+    autoSaveForm();
+  });
   // Catatan: sengaja TIDAK memanggil loadList() di sini. Editor (form
   // catatan baru) adalah tampilan awal aplikasi (lihat index.js ->
   // goToNewNote() dipanggil sebagai boot view terakhir). Data list akan

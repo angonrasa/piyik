@@ -1,13 +1,17 @@
 // modules/memory/memory.retrieval.js
 //
-// Tahap 1 — Memory Retrieval Engine + Tahap 2.1 — Context Ranking
-// (05-Roadmap-Reakurasi.md). Kumpulkan kandidat dari dua jalur (Notes +
-// Relations), tandai asal tiap kandidat (keyword match / relasi & dari
-// seed mana), lalu urutkan lewat rankMemories() (memory.ranking.js).
+// Tahap 1 — Memory Retrieval Engine + Tahap 2.1 — Context Ranking +
+// Tahap 4 — Memory Chain (05-Roadmap-Reakurasi.md). Kumpulkan kandidat
+// dari tiga jalur (keyword match, relasi 1 langkah, relasi 2 langkah),
+// tandai asal tiap kandidat, lalu urutkan lewat rankMemories()
+// (memory.ranking.js).
 //
 // Return tetap array Notes polos (bukan {note, score}) — pemanggil
 // (chat.controller.js) tidak perlu tahu ada skor di baliknya, cuma
-// butuh daftar note yang sudah terurut relevansinya.
+// butuh daftar note yang sudah terurut relevansinya. Satu pengecualian
+// kecil: note hasil relasi 2 langkah (Tahap 4) ditandai properti
+// sementara `chainedFrom` (bukan field DB, cuma dipakai chat.controller.js
+// untuk kalimat opsional Milestone 4.2 — lihat collectChainedCandidates).
 
 import { extractMeaningfulWords, hasEnoughSignal } from "./memory.keyword.js";
 import { searchNotes } from "../notes/notes.repository.js";
@@ -53,8 +57,12 @@ async function collectCandidates(directMatches) {
   }));
 
   const relatedCandidates = await collectRelatedCandidates(directMatches);
+  const chainedCandidates = await collectChainedCandidates(relatedCandidates);
 
-  return dedupeCandidates([...directCandidates, ...relatedCandidates]);
+  // Urutan penting untuk dedupeCandidates(): direct > related (depth 1) >
+  // chained (depth 2). Kalau satu note ketemu lewat beberapa jalur, jalur
+  // yang didaftar duluan yang menang.
+  return dedupeCandidates([...directCandidates, ...relatedCandidates, ...chainedCandidates]);
 }
 
 /**
@@ -74,6 +82,34 @@ async function collectRelatedCandidates(directMatches) {
     })
   );
   return perSeed.flat();
+}
+
+/**
+ * Tahap 4 — Memory Chain, Milestone 4.1. Dari tiap catatan hasil relasi
+ * 1 langkah (relatedCandidates), telusuri 1 langkah lagi lewat
+ * getRelatedNotes(). Dibatasi cuma sampai sini (depth 2 dari seed),
+ * TIDAK dipanggil rekursif lebih jauh — sesuai DoD "maksimal 2 langkah".
+ *
+ * Note hasil chain ditandai `chainedFrom` (judul note perantara), dipakai
+ * chat.controller.js untuk kalimat opsional Milestone 4.2. Ini properti
+ * sementara di memori saja, bukan field yang disimpan ke Dexie.
+ * @param {import('./memory.ranking.js').MemoryCandidate[]} relatedCandidates hasil depth 1
+ * @returns {Promise<import('./memory.ranking.js').MemoryCandidate[]>}
+ */
+async function collectChainedCandidates(relatedCandidates) {
+  const perCandidate = await Promise.all(
+    relatedCandidates.map(async (candidate) => {
+      const nextHop = await getRelatedNotes(candidate.note.id);
+      return nextHop.map((note) => ({
+        note: { ...note, chainedFrom: candidate.note.title },
+        isKeywordMatch: false,
+        isDirectRelation: false,
+        isChainRelation: true,
+        seedNote: candidate.note,
+      }));
+    })
+  );
+  return perCandidate.flat();
 }
 
 /**

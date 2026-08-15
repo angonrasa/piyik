@@ -45,6 +45,57 @@
 //           ada efeknya. Pas pertama buka Chat, yang kelihatan pesan
 //           paling lama, bukan paling baru. Urutan dibalik: showView()
 //           dulu, baru renderMessages().
+// Tahap 16: Memory Chain (05-Roadmap-Reakurasi.md Tahap 4). memory.
+//           retrieval.js sekarang bisa menelusuri relasi 2 langkah, note
+//           hasilnya ditandai chainedFrom. Kalau ada note begitu di top-3
+//           hasil retrieveMemory(), handleFallback() menambahkan 1
+//           kalimat opsional (buildChainMention) di akhir balasan
+//           reflection/recall yang sudah ada — bukan menggantikan.
+// Tahap 17: Theme Detection (05-Roadmap-Reakurasi.md Tahap 5). Modul baru
+//           memory.theme.js hitung frekuensi TYPE catatan (bukan keyword
+//           bebas — KISS) dalam 30 hari terakhir, on-the-fly. Kalau tipe
+//           catatan teratas cukup sering (>= 3), handleFallback()
+//           menambahkan 1 kalimat opsional lagi (buildThemeMention),
+//           bisa tampil BARENG chainMention (digabung lewat array
+//           `extras`, bukan ditumpuk manual per cabang seperti sebelumnya).
+// Tahap 18: Timeline Awareness (05-Roadmap-Reakurasi.md Tahap 6). Modul
+//           baru memory.timeline.js, dimensi sama seperti Tahap 5 (type,
+//           bukan keyword). Milestone 6.1-6.2: catatan bertipe sama
+//           terurut waktu, dianggap "berkembang" kalau >=2 catatan &
+//           jaraknya >=14 hari. SEKALIGUS pembatasan: extras sekarang
+//           MAKS 2 kalimat (chain + salah SATU dari theme/timeline, bukan
+//           dua-duanya), supaya balasan tidak makin panjang tiap tahap
+//           baru ditambah — lihat handleFallback().
+// Tahap 19: Personal Pattern (05-Roadmap-Reakurasi.md Tahap 7).
+//           DISEDERHANAKAN dari spesifikasi asli (disepakati bareng user
+//           sebelum dikerjakan, ini titik ⚠️ rawan kompleksitas di
+//           roadmap): dimensi cuma hari-dalam-seminggu (bukan 3 dimensi
+//           sekaligus), ambang cuma ">=3 kali dalam 8 minggu terakhir"
+//           (bukan "3 minggu berturut-turut" — versi berurutan butuh
+//           logika kalender yang sudah bukan rule sederhana lagi). Detail
+//           di memory.pattern.js. Slot pattern jadi FALLBACK TERAKHIR di
+//           urutan prioritas secondaryMention: theme -> timeline ->
+//           pattern (tetap maks 2 extras total, tidak nambah slot baru).
+// Tahap 20: Contradiction Detector (05-Roadmap-Reakurasi.md Tahap 8).
+//           ⚠️ Titik rawan kompleksitas paling tegas di roadmap ("kalau
+//           rule butuh pemahaman makna kalimat, pindahkan ke Backlog").
+//           memory.contradiction.js SENGAJA berhenti di hitung kata
+//           literal (daftar kata positif/negatif tetap), TIDAK ada
+//           pemahaman konteks. Milestone 8.1 reuse calculateSimilarity()
+//           Tahap 3 apa adanya untuk "topik sama" (catatan vs catatan,
+//           bukan pesan vs catatan). Slot contradiction jadi FALLBACK
+//           TERAKHIR di rantai secondaryMention: theme -> timeline ->
+//           pattern -> contradiction (tetap maks 2 extras total).
+// Tahap 21: Memory Suggestion (05-Roadmap-Reakurasi.md Tahap 9). BEDA
+//           dari Tahap 1 (yang cuma trigger di jalur FALLBACK): Tahap 9
+//           trigger proaktif di jalur INTENT yang berhasil (sengaja
+//           dibatasi scope ke create_note saja dulu, paling relevan
+//           dengan "rencana ke depan" — bukan semua intent, supaya tidak
+//           melebar). Dicek SEBELUM createNote() dipanggil, supaya
+//           catatan yang baru dibuat tidak ikut jadi hasil pencariannya
+//           sendiri. Reuse retrieveMemory() (Tahap 1) apa adanya — sudah
+//           otomatis batasi 3 hasil, DoD "≤3 tawaran" terpenuhi tanpa
+//           kode tambahan. Lihat buildMemorySuggestion & handleCreateNote.
 
 import { addMessage, addBotMessage, getAllMessages, deleteAllMessages } from "./chat.repository.js";
 import { renderMessages, readInput, clearInput, showTypingIndicator, hideTypingIndicator } from "./chat.view.js";
@@ -57,6 +108,11 @@ import { getRelatedNotes } from "../relations/relations.repository.js";
 import { retrieveMemory } from "../memory/memory.retrieval.js";
 import { extractCause } from "../memory/memory.reflection.js";
 import { calculateSimilarity, buildSimilarityVocab, SIMILARITY_THRESHOLD } from "../memory/memory.similarity.js";
+import { hasFrequentTheme } from "../memory/memory.theme.js";
+import { getNotesByType, hasTimelineProgress } from "../memory/memory.timeline.js";
+import { detectHabit } from "../memory/memory.pattern.js";
+import { findContradictionPair, hasAttitudeChanged } from "../memory/memory.contradiction.js";
+import { hasSuggestionTrigger } from "../memory/memory.suggestion.js";
 import {
   updateContext,
   getSearchResults,
@@ -220,6 +276,141 @@ const REFLECTION_REPLIES = {
   ],
 };
 
+// Kalimat opsional Memory Chain (Tahap 4 - 05-Roadmap-Reakurasi.md).
+// Milestone 4.2: satu kalimat tambahan, HANYA muncul kalau relasi
+// lanjutan (2 langkah) benar-benar ada di top-3 hasil retrieval — tidak
+// dipaksakan tiap balasan.
+const CHAIN_MENTION_TEMPLATE = (title) =>
+  `Selain itu ada juga catatan yang berkaitan: ${title}.`;
+
+/**
+ * Cek apakah ada note hasil relasi 2 langkah (ditandai chainedFrom oleh
+ * memory.retrieval.js) di antara hasil retrieval. Cuma ambil yang
+ * pertama ketemu, konsisten dengan pola "1 info tambahan saja" di
+ * REFLECTION_REPLIES.
+ * @param {Array<object>} memories hasil retrieveMemory()
+ * @returns {string|null}
+ */
+function buildChainMention(memories) {
+  const chained = memories.find((note) => note.chainedFrom);
+  return chained ? CHAIN_MENTION_TEMPLATE(chained.title) : null;
+}
+
+/**
+ * Tahap 10.2 — Nada Bahasa (05-Roadmap-Reakurasi.md). Kalau chainMention
+ * DAN secondaryMention dua-duanya ada, dulu digabung lewat
+ * `.filter(Boolean).join("\n\n")` — jadi 2 paragraf terpisah yang kerasa
+ * kayak poin laporan berurutan, bukan orang ngobrol (lihat audit
+ * sebelum task ini). Sekarang digabung jadi SATU paragraf, kalimat kedua
+ * disambung pakai "Btw," dan huruf pertamanya di-lowercase supaya
+ * nyambung sebagai satu tarikan napas, bukan kalimat baru yang berdiri
+ * sendiri.
+ *
+ * Kalau cuma salah satu yang ada, tidak ada perubahan — tetap kalimat
+ * itu apa adanya (tidak dipaksa nambah "Btw," kalau cuma sendirian).
+ * @param {string|null} chainMention
+ * @param {string|null} secondaryMention
+ * @returns {string|null}
+ */
+function buildExtras(chainMention, secondaryMention) {
+  if (chainMention && secondaryMention) {
+    return `${chainMention} Btw, ${lowerFirstLetter(secondaryMention)}`;
+  }
+  return chainMention ?? secondaryMention ?? null;
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function lowerFirstLetter(text) {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+// Kalimat opsional Theme Detection (Tahap 5 - 05-Roadmap-Reakurasi.md).
+// Milestone 5.2: cuma muncul kalau tipe catatan teratas cukup sering
+// (>= 3 dalam 30 hari terakhir, lihat memory.theme.js). Statis, tidak
+// perlu template dinamis karena tidak menyebut catatan spesifik.
+const THEME_MENTION_TEMPLATE = "Topik ini cukup sering muncul di catatanmu.";
+
+/**
+ * Milestone 5.1-5.2. Cek apakah TYPE catatan teratas hasil retrieval
+ * cukup sering muncul dalam 30 hari terakhir. Dihitung on-the-fly lewat
+ * hasFrequentTheme(), tidak ada hasil yang disimpan/cache.
+ * @param {object} topNote catatan #1 hasil ranking Tahap 2
+ * @returns {Promise<string|null>}
+ */
+async function buildThemeMention(topNote) {
+  const notes = await getAllNotes();
+  return hasFrequentTheme(notes, topNote.type) ? THEME_MENTION_TEMPLATE : null;
+}
+
+// Kalimat opsional Timeline Awareness (Tahap 6 - 05-Roadmap-Reakurasi.md).
+// Milestone 6.2: cuma muncul kalau catatan bertipe sama sudah cukup
+// berkembang dari waktu ke waktu (lihat memory.timeline.js). Statis,
+// sama seperti THEME_MENTION_TEMPLATE.
+const TIMELINE_MENTION_TEMPLATE = "Perjalanan ini sudah berkembang cukup jauh dari waktu ke waktu.";
+
+/**
+ * Milestone 6.1-6.2. Cek apakah catatan bertipe sama dengan topNote sudah
+ * "berkembang" cukup jauh (>=2 catatan, jarak waktu >=14 hari). Dihitung
+ * on-the-fly, tidak ada hasil yang disimpan/cache.
+ * @param {object} topNote catatan #1 hasil ranking Tahap 2
+ * @returns {Promise<string|null>}
+ */
+async function buildTimelineMention(topNote) {
+  const notes = await getAllNotes();
+  const sameType = getNotesByType(notes, topNote.type);
+  return hasTimelineProgress(sameType) ? TIMELINE_MENTION_TEMPLATE : null;
+}
+
+// Kalimat opsional Personal Pattern (Tahap 7 - 05-Roadmap-Reakurasi.md,
+// versi disederhanakan — lihat catatan Tahap 19 di atas file ini).
+// Muncul kalau ada hari-dalam-seminggu yang cukup konsisten dipakai
+// untuk tipe catatan yang sama (lihat memory.pattern.js).
+const PATTERN_MENTION_TEMPLATE = (day) => `Kamu sering menulis catatan seperti ini di hari ${day}.`;
+
+/**
+ * Milestone 7.1-7.2 (disederhanakan). Cek apakah ada hari-dalam-seminggu
+ * yang jadi kebiasaan untuk tipe catatan topNote. Dihitung on-the-fly,
+ * tidak ada hasil yang disimpan/cache.
+ * @param {object} topNote catatan #1 hasil ranking Tahap 2
+ * @returns {Promise<string|null>}
+ */
+async function buildPatternMention(topNote) {
+  const notes = await getAllNotes();
+  const day = detectHabit(notes, topNote.type);
+  return day ? PATTERN_MENTION_TEMPLATE(day) : null;
+}
+
+// Kalimat opsional Contradiction Detector (Tahap 8 -
+// 05-Roadmap-Reakurasi.md). Muncul kalau ada catatan lain bertopik sama
+// (>= 6 bulan jaraknya) yang sikapnya berbeda (lihat
+// memory.contradiction.js — MURNI hitung kata, bukan sentiment analysis).
+const CONTRADICTION_MENTION_TEMPLATE = (keyword) => `Pandanganmu tentang ${keyword} tampaknya berubah.`;
+
+/**
+ * Milestone 8.1-8.2. Cari pasangan catatan bertopik sama dengan topNote
+ * yang jaraknya >= 6 bulan, cek apakah sikapnya (dari daftar kata
+ * positif/negatif) berbeda. Dihitung on-the-fly, tidak ada hasil yang
+ * disimpan/cache.
+ * @param {object} topNote catatan #1 hasil ranking Tahap 2
+ * @returns {Promise<string|null>}
+ */
+async function buildContradictionMention(topNote) {
+  const notes = await getAllNotes();
+  const vocab = buildSimilarityVocab(notes);
+
+  const pair = findContradictionPair(notes, topNote, vocab);
+  if (!pair) return null;
+
+  const topText = `${topNote.title} ${topNote.content}`;
+  const partnerText = `${pair.partner.title} ${pair.partner.content}`;
+  if (!hasAttitudeChanged(topText, partnerText)) return null;
+
+  return CONTRADICTION_MENTION_TEMPLATE(pair.keyword);
+}
+
 // Variasi kalimat fallback saat intent gagal dikenali (Tahap B.1 -
 // 06-Chat-Polish-Roadmap.md). Kasih contoh perintah pakai judul catatan
 // asli dari DB (sama seperti handleHelp) supaya lebih relate.
@@ -305,17 +496,42 @@ async function handleFallback(pesan) {
   if (memories.length > 0) {
     updateContext({ searchResults: memories });
 
+    // Tahap 4, 5, 6, 7 & 8 — Memory Chain, Theme Detection, Timeline
+    // Awareness, Personal Pattern, Contradiction Detector. Semua cuma
+    // info tambahan opsional. Dibatasi MAKS 2 kalimat total (chain dulu
+    // kalau ada, karena paling konkret — sebut judul spesifik — lalu
+    // SATU dari theme/timeline/pattern/contradiction saja, dicek
+    // berurutan, berhenti di yang pertama ketemu).
+    const chainMention = buildChainMention(memories);
+    const themeMention = await buildThemeMention(memories[0]);
+    const timelineMention = themeMention ? null : await buildTimelineMention(memories[0]);
+    const patternMention =
+      themeMention || timelineMention ? null : await buildPatternMention(memories[0]);
+    const contradictionMention =
+      themeMention || timelineMention || patternMention
+        ? null
+        : await buildContradictionMention(memories[0]);
+    const secondaryMention = themeMention ?? timelineMention ?? patternMention ?? contradictionMention;
+    // Tahap 10.2 — dulu `[chainMention, secondaryMention].filter(Boolean).join("\n\n")`,
+    // sekarang lewat buildExtras() supaya kombinasi chain+secondary jadi
+    // satu paragraf ngalir, bukan 2 paragraf terpisah (lihat komentar di
+    // buildExtras()).
+    const extras = buildExtras(chainMention, secondaryMention);
+
     // Tahap 3 — Reflection Engine. Cuma cek catatan TERATAS (paling
     // relevan hasil ranking Tahap 2), sesuai Milestone 3.2 "batasi ke 1
     // relasi paling kuat saja per jawaban".
     const reflection = await buildReflection(pesan, memories[0]);
-    if (reflection) return reflection;
+    if (reflection) {
+      return extras ? `${reflection}\n\n${extras}` : reflection;
+    }
 
     // Tidak cukup mirip (skor di bawah SIMILARITY_THRESHOLD) -> turun ke
     // MEMORY_RECALL_REPLIES biasa (Tahap 1), tidak maksain klaim
     // kesamaan yang tidak ada datanya.
     const titles = memories.map((note) => note.title).join(", ");
-    return pickRandom(MEMORY_RECALL_REPLIES)(titles);
+    const recall = pickRandom(MEMORY_RECALL_REPLIES)(titles);
+    return extras ? `${recall}\n\n${extras}` : recall;
   }
 
   const notes = await getAllNotes();
@@ -499,6 +715,32 @@ function resolveType(type) {
   return type || "catatan";
 }
 
+// Variasi kalimat saran proaktif (Tahap 9 - 05-Roadmap-Reakurasi.md).
+// Nadanya "btw/ngomong-ngomong" — bukan menjawab pertanyaan, cuma
+// nawarin info tambahan yang mungkin relevan.
+const SUGGESTION_REPLIES = [
+  (titles) => `Btw, kamu juga pernah nulis ini: ${titles}.`,
+  (titles) => `Ngomong-ngomong, ini catatan lama yang mungkin relevan: ${titles}.`,
+];
+
+/**
+ * Milestone 9.1-9.2. Kalau teks menyinggung rencana ke depan (trigger
+ * keyword), tawarkan memori relevan lewat retrieveMemory() (Tahap 1)
+ * yang sudah ada — TIDAK membangun ulang retrieval/ranking. Otomatis
+ * maks 3 hasil (Milestone 2.2), sesuai DoD Tahap 9.
+ * @param {string} text
+ * @returns {Promise<string|null>}
+ */
+async function buildMemorySuggestion(text) {
+  if (!hasSuggestionTrigger(text)) return null;
+
+  const memories = await retrieveMemory(text);
+  if (memories.length === 0) return null;
+
+  const titles = memories.map((note) => note.title).join(", ");
+  return pickRandom(SUGGESTION_REPLIES)(titles);
+}
+
 /**
  * Membuat catatan baru dari chat. Title & content sama-sama diisi dari
  * entities.keyword (sesuai kesepakatan: belum ada input terpisah untuk
@@ -520,6 +762,11 @@ async function handleCreateNote(entities) {
 
   const title = entities.keyword;
   const type = resolveType(entities.type);
+
+  // Tahap 9 — Memory Suggestion. Dicek SEBELUM createNote(), supaya
+  // catatan yang baru dibuat tidak ikut jadi hasil retrieval-nya sendiri.
+  const suggestion = await buildMemorySuggestion(title);
+
   const result = await createNote({ title, content: title, type });
 
   // Bug fix Tahap 10/11: susun sendiri objek note (jangan asumsikan
@@ -527,7 +774,8 @@ async function handleCreateNote(entities) {
   // title undefined.
   updateContext({ currentNote: { id: extractNoteId(result), title, content: title, type } });
 
-  return pickRandom(CREATE_DONE_REPLIES)(title);
+  const reply = pickRandom(CREATE_DONE_REPLIES)(title);
+  return suggestion ? `${reply}\n\n${suggestion}` : reply;
 }
 
 // Variasi kalimat balasan delete_note (Tahap A.4).
