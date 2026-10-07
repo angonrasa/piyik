@@ -113,6 +113,9 @@ import { getNotesByType, hasTimelineProgress } from "../memory/memory.timeline.j
 import { detectHabit } from "../memory/memory.pattern.js";
 import { findContradictionPair, hasAttitudeChanged } from "../memory/memory.contradiction.js";
 import { hasSuggestionTrigger } from "../memory/memory.suggestion.js";
+import { buildContext } from "../memory/memory.context-builder.js";
+import { buildPrompt } from "./chat.prompt-builder.js";
+import { isAIAvailable, generateAIReply } from "./chat.ai-adapter.js";
 import {
   updateContext,
   getSearchResults,
@@ -498,7 +501,29 @@ async function handleFallback(pesan) {
   // nadanya sengaja beda). Kalau tidak ketemu, diam-diam lanjut ke
   // fallback generik seperti biasa — chat tidak memaksakan jawaban
   // (DoD Milestone 1.3).
-  const memories = await retrieveMemory(pesan);
+  //
+  // Tahap AI-2 — Context Builder. buildContext() lewat SEKALI di sini
+  // (bukan dipanggil ulang di bawah), supaya `context.notes` yang dipakai
+  // buat log SAMA dengan `memories` yang dipakai cabang di bawah — tidak
+  // manggil retrieveMemory() dua kali dengan pesan yang sama. Log
+  // dipasang SEBELUM pengecekan panjang, jadi kelihatan isi context
+  // package-nya baik pas ketemu maupun pas kosong (dulu sempat ditaruh
+  // SETELAH cabang "ketemu" selesai, jadi selalu kosong di titik itu —
+  // sudah dibetulkan).
+  const context = await buildContext(pesan);
+  const memories = context.notes;
+  console.log("[AI-2 context package]", context);
+
+  // Tahap AI-3 — Prompt Builder. buildPrompt() cuma menyusun teks, belum
+  // dikirim ke AI mana pun (itu baru AI-4). Milestone 3.2: uji manual
+  // lewat console dulu, cek apakah masuk akal & tidak kepanjangan,
+  // sebelum lanjut ke adapter. Sengaja dipanggil DI LUAR blok
+  // `if (memories.length > 0)` di bawah, supaya prompt tetap ke-log
+  // baik pas ada catatan relevan maupun tidak (dua kondisi yang perlu
+  // dicek manual, lihat buildPromptWithoutNotes() di prompt-builder).
+  const prompt = buildPrompt(pesan, context);
+  console.log("[AI-3 prompt]", prompt);
+
   if (memories.length > 0) {
     updateContext({ searchResults: memories });
 
@@ -544,7 +569,26 @@ async function handleFallback(pesan) {
   // FALLBACK_REPLIES. Sudah tidak dipakai sejak balasan diganti
   // placeholder AI di bawah — dihapus dulu (YAGNI), gampang ditambah
   // lagi kalau AI-2 (context builder) butuh bentuk serupa nanti.
-  return AI_PLACEHOLDER_REPLY;
+  //
+  // Tahap AI-2 & AI-3: context package & prompt (di atas) sudah di-log
+  // sebelum baris ini. Kalau kesampaian sampai sini, `context.notes`
+  // memang kosong beneran — situasi wajar kalau rule engine & retrieval
+  // dua-duanya tidak nemu apapun.
+  //
+  // Tahap AI-4.0 — Kontrak Adapter. Dulu langsung `return
+  // AI_PLACEHOLDER_REPLY;` di sini (hardcode). Sekarang keputusan lewat
+  // chat.ai-adapter.js — satu-satunya titik yang tahu provider AI mana
+  // yang aktif. Hasilnya SAMA PERSIS sekarang (isAIAvailable() masih
+  // selalu false, karena provider aktif masih NullAIProvider — lihat
+  // ai-adapter.js), tapi jalurnya sudah benar: begitu ada provider nyata
+  // di AI-4.1/4.2, cabang `generateAIReply(prompt)` di bawah yang mulai
+  // kepakai, TANPA ubah apapun di file ini (itu baru AI-4.3).
+  const aiAvailable = await isAIAvailable();
+  if (!aiAvailable) {
+    return AI_PLACEHOLDER_REPLY;
+  }
+
+  return generateAIReply(prompt);
 }
 
 /**

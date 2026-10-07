@@ -4,7 +4,9 @@
 
 /**
  * Mengubah teks multi-baris jadi array item checklist.
- * Baris dengan "[x]" atau "[X]" di depan dianggap selesai.
+ * Baris dengan "[x]" atau "[X]" di depan dianggap selesai. Awalan "- " boleh
+ * ada ("- [x] item", format checklist editor Catatan) supaya catatan yang
+ * tipenya diganti jadi Tugas tetap terbaca benar.
  * Baris dengan "[ ]" atau tanpa tanda kurung dianggap belum selesai.
  * Baris kosong diabaikan.
  * @param {string} text
@@ -17,7 +19,7 @@ export function parseChecklistText(text) {
   for (const line of lines) {
     if (!line) continue; // lewati baris kosong
 
-    const match = line.match(/^\[( |x|X)\]\s*(.*)$/);
+    const match = line.match(/^(?:-\s+)?\[( |x|X)\]\s*(.*)$/);
     if (match) {
       const done = match[1].toLowerCase() === "x";
       const itemText = match[2].trim();

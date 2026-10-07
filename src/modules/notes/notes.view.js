@@ -19,6 +19,8 @@ const detailContentEl = document.getElementById("detail-content");
 import { createEmptyState } from "../../shared/empty-state.js";
 import { formatRelativeTime } from "../../shared/format-time.js";
 import { getNoteTypeMeta } from "./note-type.js";
+import { PLAIN_TEXT_TYPES } from "../editor/editor.parser.js";
+import { renderMarkdown, stripMarkdown } from "../editor/editor.renderer.js";
 
 const CHECKLIST_PLACEHOLDER =
   "Satu baris = satu item, contoh:\n[ ] Cari referensi\n[x] Buat outline\n[ ] Tulis Bab 1";
@@ -153,7 +155,9 @@ function createNoteCard(note, relationCount, onSelect) {
 
   const snippetEl = document.createElement("p");
   snippetEl.className = "note-item-snippet";
-  snippetEl.textContent = note.content || "";
+  // Simbol markdown dibuang dari cuplikan (tampilan saja).
+  const snippetText = note.content || "";
+  snippetEl.textContent = PLAIN_TEXT_TYPES.includes(note.type) ? snippetText : stripMarkdown(snippetText);
 
   body.append(titleEl, subtitleEl, snippetEl);
 
@@ -300,5 +304,11 @@ export function fillDetail(note) {
 
   const isTugas = note.type === "tugas";
   detailContentEl.hidden = isTugas;
-  detailContentEl.textContent = isTugas ? "" : note.content;
+  if (isTugas) {
+    detailContentEl.textContent = "";
+  } else if (PLAIN_TEXT_TYPES.includes(note.type)) {
+    detailContentEl.textContent = note.content; // Lagu: catatan bebas, bukan markdown
+  } else {
+    renderMarkdown(detailContentEl, note.content);
+  }
 }

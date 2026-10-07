@@ -1,0 +1,183 @@
+/* src/styles/rich.css
+   Blok "advanced" editor (Phase 5), dipakai Editor dan Detail catatan.
+   J1: blok kode dan kode inline. Callout, tabel, rumus, sketsa menyusul. */
+
+:root {
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* Blok kode: kotak halus, tanpa bungkus baris; baris panjang digulir ke
+   samping di dalam kotaknya, halaman tidak ikut melebar. */
+.md-code {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 4px 0;
+  padding: 10px 14px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  line-height: inherit;
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.md-code::-webkit-scrollbar {
+  display: none;
+}
+
+.md-code code {
+  display: block;
+  min-height: 1lh; /* blok kosong tetap setinggi satu baris */
+  font: inherit;
+}
+
+/* Kode inline: latar halus + monospace. */
+.md-code-inline {
+  padding: 1px 5px;
+  background: var(--color-grey);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Callout (Phase 5 - K1) ----------
+   Info = sky, Peringatan = lemon, Berhasil = mint, Galat = coral (palet tipe
+   catatan; tanpa warna baru). Garis kiri + latar lembut, ikon bulat berisi
+   simbol teks. Dipakai Editor (blok non-aktif) dan Detail. */
+.md-callout {
+  --callout-color: var(--color-sky);
+  --callout-bg: var(--color-secondary-soft);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 4px 0;
+  padding: 10px 14px 10px 12px;
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-color);
+  border-radius: 0 var(--radius-input) var(--radius-input) 0;
+}
+
+.md-callout--warning {
+  --callout-color: var(--color-lemon);
+  --callout-bg: var(--color-lemon-soft);
+}
+
+.md-callout--success {
+  --callout-color: var(--color-mint);
+  --callout-bg: rgba(98, 180, 61, 0.16); /* mint, belum punya token soft */
+}
+
+.md-callout--error {
+  --callout-color: var(--color-coral);
+  --callout-bg: var(--color-warning-soft); /* coral lembut */
+}
+
+.md-callout-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: var(--radius-full);
+  background: var(--callout-color);
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.md-callout-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.md-callout-title {
+  font-weight: 600;
+}
+
+.md-callout-body {
+  overflow-wrap: anywhere;
+}
+
+/* Callout, blok aktif di Editor (Phase 5 - K2): textarea berisi teks mentah
+   "> [!tipe]" + isi, diberi garis kiri dan latar sewarna render supaya tidak
+   tampak loncat saat berpindah blok. Variabel warna sama dengan .md-callout. */
+.block--active[data-kind="callout"] {
+  --callout-color: var(--color-sky);
+  --callout-bg: var(--color-secondary-soft);
+  box-sizing: border-box;
+  margin: 0; /* .block > :not(textarea) di editor.css juga menol-kan margin callout yang dirender */
+  padding: 10px 14px 10px 12px;
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-color);
+  border-radius: 0 var(--radius-input) var(--radius-input) 0;
+}
+
+.block--active[data-kind="callout"][data-variant="warning"] {
+  --callout-color: var(--color-lemon);
+  --callout-bg: var(--color-lemon-soft);
+}
+
+.block--active[data-kind="callout"][data-variant="success"] {
+  --callout-color: var(--color-mint);
+  --callout-bg: rgba(98, 180, 61, 0.16); /* sama dengan .md-callout--success */
+}
+
+.block--active[data-kind="callout"][data-variant="error"] {
+  --callout-color: var(--color-coral);
+  --callout-bg: var(--color-warning-soft);
+}
+
+/* ---------- Tabel (Phase 5 - L1) ----------
+   <table> di dalam .md-table-wrap: wadah menggulir ke samping (tanpa scrollbar,
+   seperti blok kode) sehingga tabel lebar tidak melebarkan halaman. Header
+   tebal berlatar --color-card, garis halus --color-border. */
+.md-table-wrap {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 4px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.md-table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.md-table {
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.md-table th,
+.md-table td {
+  min-width: 5em;
+  max-width: 16em;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.md-table th {
+  background: var(--color-card);
+  font-weight: 600;
+}
+
+/* Sel kosong tetap setinggi satu baris. */
+.md-table th:empty::before,
+.md-table td:empty::before {
+  content: "\00a0";
+}

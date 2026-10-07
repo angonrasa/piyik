@@ -49,7 +49,13 @@ async function init() {
   }
 }
 
-if ("serviceWorker" in navigator) {
+// Skip registrasi SW saat development di localhost/127.0.0.1 — cache SW
+// bikin perubahan file gak langsung kepakai (harus unregister manual tiap
+// kali), ganggu alur dev. Tetap aktif di domain/IP lain (LAN device asli,
+// production), karena di situ justru offline-first-nya dibutuhkan.
+const isDevHost = ["localhost", "127.0.0.1"].includes(location.hostname);
+
+if ("serviceWorker" in navigator && !isDevHost) {
   window.addEventListener("load", async () => {
     try {
       await navigator.serviceWorker.register("./service-worker.js");

@@ -1,0 +1,688 @@
+/* ==========================================================================
+   Editor — semua gaya layar Editor catatan (#view-form): menu titik-tiga,
+   judul & textarea, tipe + type sheet, counter kata, bar format + CTRL.
+   Dimuat setelah main.css. Header floating & tombol ikon yang dipakai
+   bersama Detail (.editor-header, .icon-btn, dst) tetap di main.css;
+   panel #song-fields juga masih di main.css.
+   ========================================================================== */
+
+/* FAB (+) ada di luar #app (lihat index.html), jadi tidak otomatis ikut
+   disembunyikan saat showView() ganti section aktif. Sembunyikan manual
+   khusus saat editor (#view-form) sedang tampil -- editor sudah punya
+   tombol back sendiri di .editor-header, FAB jadi tidak relevan/menutupi
+   konten di sana. */
+body:has(#view-form:not([hidden])) .fab-add {
+  display: none;
+}
+
+/* Tombol undo & redo Editor (Phase 1 - B2, B3; redo memakai kelas yang
+   sama): disembunyikan sampai ada yang bisa diurungkan/diulangi (07-UI-Guidelines: Sembunyikan Kompleksitas). Pakai
+   opacity + visibility, bukan display:none, supaya posisi tombol lain
+   tidak bergeser. Fade mengikuti --transition-fast (200ms). */
+.editor-undo-btn {
+  opacity: 1;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+}
+
+.editor-undo-btn[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Visual tetap 40px seperti tombol lain, area sentuh jadi 44x44. */
+.editor-undo-btn::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+}
+
+/* Titik hijau kecil di tombol menu editor -- penanda "tersimpan otomatis",
+   sesuai mockup (.autosave-dot). */
+.autosave-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  border: 1.5px solid #ffffff;
+}
+
+/* Judul screen (#form-title) dipertahankan hanya untuk aksesibilitas —
+   mockup tidak menampilkan judul screen di Editor secara visual. */
+
+/* ---------- Dropdown menu titik-tiga di Editor ----------
+   Berisi aksi yang sebelumnya tampil sebagai tombol Batal/Simpan penuh
+   di footer, atau field Editor Lagu yang selalu terlihat -- sekarang
+   disatukan di sini sesuai keputusan Tahap 7.1. */
+.editor-menu {
+  position: relative;
+}
+
+.editor-menu-dropdown {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.14);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.editor-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: calc(var(--radius-input) - 4px);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
+
+.editor-menu-item:active {
+  background: var(--color-grey);
+  transform: none;
+}
+
+/* display:flex di atas menang atas [hidden] bawaan browser, jadi harus
+   ditulis eksplisit di sini -- pola sama dengan #song-fields[hidden]. */
+.editor-menu-dropdown[hidden] {
+  display: none;
+}
+
+/* Sama seperti di atas: display:block di .editor-menu-item menang atas
+   [hidden] bawaan browser, jadi "Detail Lagu" / "Hapus" tetap kelihatan
+   walau JS sudah set .hidden = true. Butuh override eksplisit juga. */
+.editor-menu-item[hidden] {
+  display: none;
+}
+
+.editor-menu-item-danger {
+  color: var(--color-danger);
+}
+
+/* ---------- Isi form Editor: judul besar & textarea polos full-bleed,
+   sesuai mockup (.title-input / .content-textarea). Header floating di
+   atas butuh ruang, jadi form diberi padding-top. ---------- */
+#note-form {
+  padding-top: 62px;
+  /* Ruang napas kiri-kanan: 16px (body) + 8px = 24px dari tepi layar. */
+  padding-inline: 8px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 76px - env(safe-area-inset-top, 0px));
+}
+
+.title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 0 4px;
+  margin-top: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--color-text);
+  caret-color: var(--color-caret);
+}
+
+.title-input::placeholder {
+  color: var(--color-border);
+  font-weight: 700;
+}
+
+.content-textarea {
+  flex: 1;
+  min-height: 260px;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  padding: 0;
+  margin-top: 16px;
+  font-family: var(--font-body);
+  font-size: var(--font-size-editor);
+  line-height: var(--line-height-editor);
+  color: var(--color-text);
+  caret-color: var(--color-caret);
+}
+
+.content-textarea::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---------- Tipe: chip kecil (bukan card selebar form) ----------
+   Sesuai mockup (.type-chip): pill auto-width, ikon warna latar sesuai
+   tipe + chevron kecil. Generik untuk semua tipe (ikonnya diisi
+   src/shared/type-select.js). */
+.type-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  /* #note-form adalah flex column tanpa align-items custom (default:
+     stretch). Flex item selalu di-"blockify" browser walau class-nya
+     inline-flex, jadi tanpa baris ini elemen ini ikut ditarik selebar
+     form -> jadi bar lebar, bukan pill kecil seperti mockup. */
+  align-self: flex-start;
+  margin: 2px 0 20px;
+  padding: 4px 26px 4px 6px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  /* Sekarang elemennya <button> (trigger bottom-sheet), bukan <div>
+     berisi <select> lagi -- reset sebagian style default `button`
+     generik di bawah (background, warna, padding, radius) supaya
+     tetap tampil sebagai pill kecil seperti sebelumnya. */
+  cursor: pointer;
+}
+
+.type-select-wrap:active {
+  transform: none;
+}
+
+.type-select-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-select-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--color-text);
+}
+
+/* <select> asli dipertahankan di DOM (nyimpen value form + didengar
+   event "change" oleh kode lain), tapi tidak lagi dipakai sebagai UI
+   -- popup-nya digantikan .type-sheet-overlay di bawah. */
+.type-select-native-hidden {
+  display: none;
+}
+
+.type-select-chevron {
+  position: absolute;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* ---------- Bottom-sheet pengganti popup native <select> tipe catatan ----------
+   Popup asli <select> dirender OS (lihat diskusi), warnanya tidak bisa
+   diatur CSS -- makanya diganti overlay + panel custom di sini. Isi
+   item di-generate JS dari <option> yang ada di #input-type (lihat
+   type-select.js), style mengikuti token warna yang sama dengan
+   chip/card lain supaya otomatis ikut tema apa pun yang sedang aktif. */
+.type-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.4);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.type-sheet-overlay[hidden] {
+  display: none;
+}
+
+.type-sheet-overlay-open {
+  opacity: 1;
+}
+
+.type-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--color-card);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  padding: 8px 8px calc(12px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 24px rgba(31, 41, 55, 0.18);
+  transform: translateY(100%);
+  transition: transform var(--transition-fast);
+}
+
+.type-sheet-overlay-open .type-sheet {
+  transform: translateY(0);
+}
+
+.type-sheet-handle {
+  width: 36px;
+  height: 4px;
+  margin: 6px auto 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+.type-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+  text-align: left;
+}
+
+.type-sheet-item:active {
+  background: var(--color-grey);
+  transform: none;
+}
+
+.type-sheet-item-active {
+  background: var(--color-accent-soft);
+}
+
+.type-sheet-item-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-sheet-item-label {
+  flex: 1;
+}
+
+.type-sheet-item-check {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  opacity: 0;
+}
+
+.type-sheet-item-active .type-sheet-item-check {
+  opacity: 1;
+}
+
+/* ---------- Counter field "Catatan (opsional)" (Tahap 2) ----------
+   Elemen ini selalu ada di form (dipakai bersama semua tipe), tapi hanya
+   diaktifkan (maxlength + tampil) untuk tipe "song" lewat
+   song.view.js -> setSongContentNoteMode(). Untuk tipe lain tetap hidden. */
+.input-content-counter {
+  display: block;
+  margin-top: 4px;
+  text-align: right;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Jumlah kata Editor (Phase 1 - C2) ----------
+   Tampil hanya kalau isi tidak kosong & tipe bukan Lagu/Tugas
+   (lihat editor.wordcount.js). Pakai opacity + visibility, bukan
+   display:none, supaya layout tidak bergeser. Fade 200ms. */
+.editor-word-count {
+  display: block;
+  margin-top: 4px;
+  text-align: right;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  opacity: 1;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+}
+
+.editor-word-count[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---------- Label "Diedit ..." Editor (Phase 1 - C3) ----------
+   Tampil hanya kalau catatan sudah pernah tersimpan (lihat
+   editor.timestamp.js). Pola fade sama seperti .editor-word-count. */
+.editor-last-edited {
+  display: block;
+  margin-top: 8px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  opacity: 1;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+}
+
+.editor-last-edited[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---------- Bar format Editor (Phase 2 - D1, Phase 3 - E1) ----------
+   Fixed, menempel tepat di atas keyboard virtual: --keyboard-offset ditulis
+   editor.keyboard.js (0px saat keyboard tertutup/desktop). Lebar penuh maks
+   430px, tanpa celah, latar solid, garis atas tipis, tanpa sudut membulat.
+   Tampil terus selama Editor terbuka (kecuali tipe Tugas/Lagu), baik
+   keyboard terbuka maupun tertutup (editor.toolbar.js).
+   Fade 200ms, opacity + visibility supaya layout tidak bergeser. Target
+   sentuh 44x44 (tinggi bar 52px = 44 + padding 4 atas-bawah). */
+:root {
+  --keyboard-offset: 0px;
+  --editor-bar-height: 48px;
+}
+
+.editor-format-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--keyboard-offset);
+  z-index: 15;
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  height: var(--editor-bar-height);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto; /* tombol terus bertambah -> geser horizontal */
+  scrollbar-width: none;
+  padding: 2px 4px; /* tombol 44px + 2x2px = 48px (--editor-bar-height) */
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  opacity: 1;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+}
+
+/* Ruang di bawah form supaya baris terakhir bisa digulir ke atas bar + keyboard.
+   Bar sekarang selalu tampil, jadi ruangnya selalu disisakan. Di Chrome
+   Android keyboard tidak mengecilkan layout, jadi tinggi keyboard
+   (--keyboard-offset, 0px saat tertutup) harus ikut dihitung. */
+#note-form {
+  padding-bottom: calc(var(--editor-bar-height) + var(--keyboard-offset));
+}
+
+.editor-format-bar[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.editor-format-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.editor-format-btn {
+  flex: 1 0 44px; /* rata mengisi bar, minimal 44px (bar digeser kalau penuh) */
+  width: auto;
+  min-width: 44px;
+  padding: 0; /* timpa padding global `button` (10px 16px) yang membuat "H1" terpecah baris */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  line-height: 1;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-button);
+  background: transparent;
+  /* Sama persis dengan item menu navigasi (home.css .nav-item): Inter, 14px,
+     500, warna --color-text-muted. */
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.editor-format-btn:active {
+  background: var(--color-border);
+}
+
+/* Label teks (H1, H2, CTRL): bobot & ukuran sama dengan tombol lain. */
+.editor-format-btn--text {
+  font-weight: 500;
+}
+
+/* Ketebalan garis ikon sama dengan ikon menu navigasi (1.8). */
+.editor-format-btn svg {
+  stroke-width: 1.8;
+}
+
+/* Tombol CTRL (E2): tetap terlihat di kiri saat bar digeser, menyala
+   (warna aksen) selagi menunggu huruf berikutnya. */
+.editor-ctrl-btn {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  min-width: 56px;
+  padding: 0 8px;
+  background: var(--color-bg);
+}
+
+.editor-ctrl-btn[aria-pressed="true"] {
+  background: var(--color-accent);
+  color: var(--color-primary);
+}
+
+/* Pemisah tipis antar kelompok tombol (inline | heading). */
+.editor-format-sep {
+  flex: 0 0 1px;
+  height: 24px;
+  background: var(--color-border);
+}
+
+/* Tombol + (menu Sisipkan, Phase 5 - J3): ikon sama dengan tombol bar lain.
+   Ikon item di sheet: lingkaran abu, bukan warna tipe catatan. */
+.insert-sheet-item-icon {
+  background: var(--color-grey);
+  color: var(--color-text-muted);
+}
+
+/* Sheet Sisipkan berhenti di atas keyboard virtual (bukan di dasar layar),
+   memakai --keyboard-offset yang sama dengan bar format (editor.keyboard.js);
+   tanpa keyboard nilainya 0px, jadi sheet tetap di dasar layar. */
+#insert-sheet-overlay {
+  bottom: var(--keyboard-offset, 0px);
+}
+
+#insert-sheet {
+  max-height: 100%;
+}
+
+/* Di dalam blok kode (Phase 5 - I3) tombol format diredupkan: kode harus tetap
+   apa adanya. data-kind di bar diisi lewat editor.controller.js (onKindChange
+   milik editor.blocks.js). Undo/redo (data-history) dan CTRL tidak terpengaruh. */
+.editor-format-bar[data-kind="code"] .editor-format-btn[data-format],
+.editor-format-bar[data-kind="code"] .editor-insert-btn {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Tombol undo/redo di bar: diredupkan saat tidak ada yang bisa dilakukan
+   (tidak disembunyikan, supaya posisi tombol lain tidak bergeser). */
+.editor-format-btn[data-history]:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ---------- Editor blok (Phase 3b - H2) ----------
+   Default untuk tipe selain Tugas/Lagu (H6; editor.blocks.js). Textarea asli disembunyikan
+   (tetap jadi sumber teks); daftar blok mengisi tempatnya: tinggi minimum dan
+   margin sama seperti .content-textarea supaya ruang ketuk di bawah teks sama.
+   Satu blok = satu baris Markdown. Blok aktif = textarea kecil, polos. */
+.content-textarea.content-textarea--blocks {
+  display: none;
+}
+
+.block-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 260px;
+  margin-top: 16px;
+}
+
+.block-editor[hidden] {
+  display: none;
+}
+
+.block {
+  min-height: calc(var(--font-size-editor) * var(--line-height-editor)); /* baris kosong tetap bisa diketuk */
+  font-family: var(--font-body);
+  font-size: var(--font-size-editor);
+  line-height: var(--line-height-editor);
+  color: var(--color-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Satu baris = satu blok, jadi jarak antar blok diatur di sini, bukan oleh
+   margin bawaan elemen hasil renderLine. */
+.block > :not(textarea) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.block-input {
+  display: block;
+  /* Padding 2px kiri-kanan, diimbangi margin negatif dan lebar +4px: posisi
+     teks tidak berubah, tapi kursor di kolom 0 tidak lagi terpotong tepi
+     kotak (overflow: hidden) — itu yang membuat kursor baris kosong kecil. */
+  width: calc(100% + 4px);
+  margin: 0 -2px;
+  padding: 0 2px;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+  color: inherit;
+  caret-color: var(--color-caret);
+  /* Minimal setinggi satu baris: baris kosong tidak boleh lebih pendek dari
+     garis kursor (kalau tidak, kursor terpotong jadi kecil). 1lh = line-height
+     elemen ini, jadi heading aktif ikut benar. */
+  min-height: calc(var(--font-size-editor) * var(--line-height-editor));
+  min-height: 1lh;
+  field-sizing: content; /* tinggi mengikuti isi; editor.blocks.js jadi cadangan */
+}
+
+/* Saat blok aktif digulir ke terlihat (scrollIntoView), sisakan ruang untuk
+   bar format + keyboard supaya baris yang diketik tidak tertutup. */
+.block--active {
+  position: relative; /* tempat .caret-marker */
+  scroll-margin-top: 24px; /* jangan nempel mepet tepi atas saat digulir */
+  scroll-margin-bottom: calc(var(--editor-bar-height) + var(--keyboard-offset) + 12px);
+}
+
+/* Penanda sementara di baris kursor (editor.blocks.js keepActiveVisible):
+   layar digulir agar penanda ini terlihat, jadi layar mengikuti kursor. */
+.caret-marker {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+  opacity: 0;
+  scroll-margin-top: 48px;
+  scroll-margin-bottom: calc(var(--editor-bar-height) + var(--keyboard-offset) + 24px);
+}
+
+/* ---------- Blok kode (Phase 5 - I2, J1) ----------
+   Blok kode non-aktif dirender .md-code (rich.css, sama dengan Detail). Blok
+   aktif (textarea multi-baris) dibuat semirip mungkin: font, kotak, padding,
+   tanpa bungkus baris (gulir horizontal), supaya tidak melompat saat kursor
+   masuk/keluar. Tampil sebagai kotak kode, bukan teks polos. */
+.block--active[data-kind="code"] .block-input {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.block-input::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---------- Gaya baris aktif (Phase 3b - H4) ----------
+   editor.blocks.js mengisi data-kind di .block aktif sesuai awalan baris.
+   Simbol tetap terlihat; ukuran/garis disamakan dengan blok yang dirender
+   (.md-h1/.md-h2/.md-h3/.md-quote di detail.css) supaya tidak melompat saat
+   kursor pindah baris. Bullet, nomor, dan checklist tidak perlu gaya
+   tambahan: simbolnya sendiri sudah terlihat. */
+.block--active[data-kind="h1"],
+.block--active[data-kind="h2"],
+.block--active[data-kind="h3"] {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.block--active[data-kind="h1"] {
+  font-size: var(--font-size-editor-h1);
+}
+
+.block--active[data-kind="h2"] {
+  font-size: var(--font-size-editor-h2);
+}
+
+.block--active[data-kind="h3"] {
+  font-size: var(--font-size-editor-h3);
+}
+
+/* Jarak atas heading sama dengan Detail (.md-h* di detail.css: 12px, kecuali
+   baris pertama), baik saat dirender maupun saat aktif, supaya tidak melompat. */
+.block > .md-h1,
+.block > .md-h2,
+.block > .md-h3,
+.block--active[data-kind="h1"],
+.block--active[data-kind="h2"],
+.block--active[data-kind="h3"] {
+  margin-top: 12px;
+}
+
+.block:first-child > .md-h1,
+.block:first-child > .md-h2,
+.block:first-child > .md-h3,
+.block--active[data-kind="h1"]:first-child,
+.block--active[data-kind="h2"]:first-child,
+.block--active[data-kind="h3"]:first-child {
+  margin-top: 0;
+}
+
+.block--active[data-kind="quote"] {
+  padding-left: 12px;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-text-muted);
+}

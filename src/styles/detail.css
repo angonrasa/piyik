@@ -1,0 +1,232 @@
+/* ==========================================================================
+   Detail — gaya layar Detail catatan (#view-detail): header teks & subjudul,
+   pill tipe, isi Markdown (.md-*), card section, dan bagian relasi.
+   Dimuat setelah editor.css. Header floating & tombol ikon bersama Editor
+   (.detail-header, .detail-back, .detail-delete, dst) tetap di main.css.
+   ========================================================================== */
+
+/* ---------- Header Detail (Tahap A1 — redesign tampilan baca Lagu) ----------
+   Generik untuk semua tipe catatan, pola sama dengan .form-header /
+   .settings-header: back bulat transparan + judul. Subjudul & sembunyi
+   pill tipe khusus diisi song.controller.js untuk tipe "song" saja
+   (lihat setSongDetailHeader di song.view.js). */
+/* .detail-header sendiri (posisi floating + tombol ikon) sudah didefinisikan
+   di atas bersama .editor-header. Judul (#detail-title) tetap tampil di
+   dalam header ini (beda dari mockup polos yang naruh judul di body),
+   supaya tidak perlu memindah markup #detail-title -- cukup diberi
+   background semi-transparan+blur sendiri di sini, sama seperti tombol
+   ikon di sebelahnya, supaya tetap terbaca di atas konten yang di-scroll. */
+.detail-header-text {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius-input);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.detail-header-text #detail-title {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail-subtitle {
+  margin: 2px 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* Konten di bawah header digeser supaya tidak ketutup header floating. */
+#view-detail .detail-header + * {
+  margin-top: 52px;
+}
+
+#detail-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-heading);
+}
+
+/* Pill tipe catatan (07-UI-Guidelines.md -> Card: "tag ditampilkan sebagai
+   pill kecil di bawah judul"). Warna berbeda per tipe, dipetakan dari warna
+   yang sama dipakai kartu ringkasan Home, supaya makna warnanya konsisten
+   di seluruh aplikasi (bukan cuma cycling acak). */
+.detail-type-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-caption);
+  text-transform: capitalize;
+  margin: 4px 0 12px;
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary);
+}
+
+.detail-type-pill[data-type="tugas"] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.detail-type-pill[data-type="ide"] {
+  background: var(--color-warning-soft);
+  color: #b85c1e;
+}
+
+.detail-type-pill[data-type="belanja"],
+.detail-type-pill[data-type="orang"],
+.detail-type-pill[data-type="pengingat"] {
+  background: var(--color-lavender-soft);
+  color: var(--color-lavender);
+}
+
+#detail-content {
+  white-space: pre-wrap;
+  font-size: var(--font-size-editor);
+  line-height: var(--line-height-editor);
+  margin: 8px 0 16px;
+}
+
+/* Heading markdown di Detail catatan (Phase 2 - D3). H1 24px, H2 20px,
+   H3 16px; jarak atas 12px kecuali baris pertama. */
+.md-h1,
+.md-h2,
+.md-h3 {
+  margin-top: 12px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.md-h1:first-child,
+.md-h2:first-child,
+.md-h3:first-child {
+  margin-top: 0;
+}
+
+.md-h1 {
+  font-size: var(--font-size-editor-h1);
+}
+
+.md-h2 {
+  font-size: var(--font-size-editor-h2);
+}
+
+.md-h3 {
+  font-size: var(--font-size-editor-h3);
+}
+
+/* List markdown di Detail catatan (Phase 2 - D4). Penanda dan teks dipisah
+   supaya baris panjang rata di bawah teks, bukan di bawah penanda. */
+.md-li {
+  display: flex;
+  gap: 6px;
+}
+
+.md-li-marker {
+  flex: 0 0 auto;
+  min-width: 1.5em;
+  text-align: right;
+  color: var(--color-text-muted);
+}
+
+.md-li-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Checklist (Phase 2 - D5): kotak 18px; yang selesai terisi + teks dicoret.
+   Belum bisa diklik di Detail (Backlog). */
+.md-check {
+  position: relative;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 2px 4px 0 3px;
+  box-sizing: border-box;
+  border: 2px solid var(--color-text-muted);
+  border-radius: 5px;
+}
+
+.md-check[aria-checked="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.md-check[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 4px;
+  height: 8px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.md-li-done .md-li-text {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+/* Quote & divider (Phase 2 - D6). Baris quote berurutan menyambung jadi satu
+   garis kiri. Divider memakai gaya `hr` global. */
+.md-quote {
+  padding-left: 12px;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Card wrapper untuk section di Detail Catatan (Tahap 4.7 &
+   5.5 — 09-Redesign-Roadmap.md): Todo checklist, Song lyrics/toolbar, dan
+   Relations (Catatan Terkait + Rekomendasi). Mockup redesign tidak punya
+   layar acuan langsung untuk bagian-bagian ini, jadi dibungkus mengikuti
+   bahasa visual yang sudah dipakai di tempat lain (note-card di Beranda,
+   mini-note-card di Chat): surface bg + radius besar + shadow halus.
+   Menggantikan <hr /> polos yang dipakai sebelumnya sebagai pemisah. ---------- */
+.detail-card-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.detail-card-section h3:first-child,
+.detail-card-section h4:first-child {
+  margin-top: 0;
+}
+
+#todo-list,
+#related-list,
+#recommended-list {
+  list-style: none;
+}
+
+.btn-remove-relation {
+  background: var(--color-grey);
+  color: var(--color-text);
+  padding: 4px 10px;
+  font-size: var(--font-size-caption);
+}
+
+.relation-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+}
+
+.relation-add select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  background: var(--color-card);
+  color: var(--color-text);
+}

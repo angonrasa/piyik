@@ -70,6 +70,16 @@
   --font-size-body: 14px; /* dulu 16px */
   --font-size-caption: 12px; /* dulu 14px */
 
+  /* Teks isi catatan (Editor + Detail): sedikit lebih besar dari body karena
+     dibaca/ditulis lama. Dipakai editor.css dan detail.css supaya mode tulis
+     dan mode baca tampil sama. */
+  --color-caret: #16A34A; /* kursor kedip: hijau yang cukup gelap supaya terlihat di latar putih */
+  --font-size-editor: 16px;
+  --line-height-editor: 1.55;
+  --font-size-editor-h1: 26px;
+  --font-size-editor-h2: 21px;
+  --font-size-editor-h3: 18px;
+
   /* ---------- Spacing scale (REDESIGN V2.0) — token baru, dipakai
      bertahap saat tiap layar di-redesign (belum menggantikan nilai px
      langsung yang sudah ada di CSS lain, biar tidak sekaligus berubah

@@ -26,6 +26,9 @@
   <link rel="stylesheet" href="src/styles/splash.css" />
   <link rel="stylesheet" href="src/styles/tokens.css" />
   <link rel="stylesheet" href="src/styles/main.css" />
+  <link rel="stylesheet" href="src/styles/editor.css" />
+  <link rel="stylesheet" href="src/styles/detail.css" />
+  <link rel="stylesheet" href="src/styles/rich.css" />
   <link rel="stylesheet" href="src/styles/home.css" />
   <link rel="stylesheet" href="src/styles/song.css">
   <link rel="stylesheet" href="src/styles/settings.css">
@@ -203,6 +206,20 @@
              catatan baru, sembunyikan Detail Lagu saat tipe bukan "song"),
              dan klik-di-luar-untuk-tutup semuanya sudah ada di
              notes.controller.js -> initNotes(). -->
+        <div class="editor-header-actions">
+        <button type="button" id="btn-undo" class="icon-btn editor-undo-btn" data-visible="false" aria-label="Urungkan">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 14 4 9l5-5" />
+            <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+          </svg>
+        </button>
+        <button type="button" id="btn-redo" class="icon-btn editor-undo-btn" data-visible="false" aria-label="Ulangi">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 14l5-5-5-5" />
+            <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
+          </svg>
+        </button>
+
         <div class="editor-menu">
           <button type="button" id="btn-form-menu" class="icon-btn" aria-haspopup="true" aria-expanded="false" aria-label="Menu lainnya">
             <span class="autosave-dot" aria-hidden="true"></span>
@@ -217,6 +234,7 @@
             <button type="button" id="btn-menu-save" class="editor-menu-item">Simpan</button>
             <button type="button" id="btn-menu-delete" class="editor-menu-item editor-menu-item-danger" hidden>Hapus</button>
           </div>
+        </div>
         </div>
       </div>
 
@@ -268,9 +286,45 @@
           </div>
         </div>
 
+        <span id="editor-last-edited" class="editor-last-edited" data-visible="false" aria-live="off"></span>
+
         <label for="input-content" id="input-content-label" class="sr-only">Isi</label>
         <textarea class="content-textarea" id="input-content" placeholder="Tulis apa yang ingin kamu ingat..."></textarea>
         <span id="input-content-counter" class="input-content-counter" hidden></span>
+        <span id="editor-word-count" class="editor-word-count" data-visible="false" aria-live="off"></span>
+
+        <!-- Bar format Editor (Phase 2). Tampil saat textarea isi fokus;
+             logika di editor.toolbar.js. -->
+        <div id="editor-format-bar" class="editor-format-bar" data-visible="false" role="toolbar" aria-label="Format teks">
+          <button type="button" id="editor-ctrl-btn" class="editor-format-btn editor-format-btn--text editor-ctrl-btn" aria-pressed="false" aria-label="Ctrl (tombol pintas)">CTRL</button>
+          <button type="button" class="editor-format-btn" data-history="undo" aria-label="Urungkan" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+          <button type="button" class="editor-format-btn" data-history="redo" aria-label="Ulangi" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+          <button type="button" id="editor-insert-btn" class="editor-format-btn editor-insert-btn" aria-label="Sisipkan" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+          <span class="editor-format-sep" aria-hidden="true"></span>
+          <button type="button" class="editor-format-btn" data-format="bold" aria-label="Tebal"><strong>B</strong></button>
+          <button type="button" class="editor-format-btn" data-format="italic" aria-label="Miring"><em>I</em></button>
+          <button type="button" class="editor-format-btn" data-format="underline" aria-label="Garis bawah"><u>U</u></button>
+          <button type="button" class="editor-format-btn" data-format="strike" aria-label="Coret"><del>S</del></button>
+          <span class="editor-format-sep" aria-hidden="true"></span>
+          <button type="button" class="editor-format-btn editor-format-btn--text" data-format="h1" aria-label="Judul 1">H1</button>
+          <button type="button" class="editor-format-btn editor-format-btn--text" data-format="h2" aria-label="Judul 2">H2</button>
+          <button type="button" class="editor-format-btn editor-format-btn--text" data-format="h3" aria-label="Judul 3">H3</button>
+          <span class="editor-format-sep" aria-hidden="true"></span>
+          <button type="button" class="editor-format-btn" data-format="bullet" aria-label="Daftar poin"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+          <button type="button" class="editor-format-btn" data-format="number" aria-label="Daftar nomor"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></button>
+          <button type="button" class="editor-format-btn" data-format="check" aria-label="Daftar centang"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+          <span class="editor-format-sep" aria-hidden="true"></span>
+          <button type="button" class="editor-format-btn" data-format="quote" aria-label="Kutipan"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></svg></button>
+          <button type="button" class="editor-format-btn" data-format="divider" aria-label="Garis pemisah"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        </div>
+
+        <!-- Bottom-sheet menu Sisipkan (+) (Phase 5 - J3). Memakai gaya
+             .type-sheet-*; item dibuat editor.insert.js. -->
+        <div class="type-sheet-overlay" id="insert-sheet-overlay" hidden>
+          <div class="type-sheet" id="insert-sheet" role="menu" aria-label="Sisipkan">
+            <div class="type-sheet-handle" aria-hidden="true"></div>
+          </div>
+        </div>
 
         <div id="song-fields" hidden>
           <div class="song-panel-header">
@@ -357,7 +411,7 @@
         </button>
       </div>
       <p id="detail-type" class="detail-type-pill"></p>
-      <p id="detail-content"></p>
+      <div id="detail-content"></div>
 
       <hr />
 
@@ -688,7 +742,18 @@
     </svg>
   </button>
 
-  <nav id="bottom-nav">
+  <!-- Menu navigasi: tombol hamburger kiri bawah membuka panel #bottom-nav
+       (ID lama dipertahankan supaya listener JS & CSS lama tetap cocok).
+       Perilaku buka/tutup ada di src/shared/nav-menu.js. -->
+  <button type="button" class="nav-toggle" id="nav-menu-toggle" aria-label="Menu navigasi" aria-expanded="false" aria-controls="bottom-nav">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+  </button>
+
+  <nav id="bottom-nav" aria-label="Navigasi utama">
     <button type="button" class="nav-item" id="nav-home">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 11.5L12 4l8 7.5" />
@@ -728,21 +793,55 @@
 
   <!-- Dexie.js -->
   <script src="src/vendor/dexie.js"></script>
-    
+  <script type="importmap">
+    {
+      "imports": {
+        "@mlc-ai/web-llm": "https://esm.run/@mlc-ai/web-llm"
+      }
+    }
+  </script>
   <script type="module" src="src/index.js"></script>
   <script type="module" src="src/shared/type-select.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
   <script>
-    if ("serviceWorker" in navigator) {
-  window.addEventListener("load", async () => {
-    try {
-      await navigator.serviceWorker.register("./service-worker.js");
-      console.log("Service Worker berhasil didaftarkan");
-    } catch (err) {
-      console.error(err);
-    }
-  });
-}
+    /* Service worker hanya aktif saat dibuka lewat alamat online (bukan
+       localhost), supaya cache tidak mengganggu debugging. Di localhost,
+       service worker lama yang pernah terdaftar dicabut dan cache-nya
+       dihapus, jadi selalu memuat file terbaru. */
+    (function () {
+      if (!("serviceWorker" in navigator)) return;
+
+      var host = location.hostname;
+      var isLocal =
+        host === "localhost" || host === "127.0.0.1" ||
+        host === "[::1]" || host === "::1";
+
+      if (isLocal) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (reg) { reg.unregister(); });
+        });
+        if (window.caches) {
+          caches.keys().then(function (keys) {
+            keys.forEach(function (key) {
+              if (key.indexOf("piyik-mind-") === 0) caches.delete(key);
+            });
+          });
+        }
+        return;
+      }
+
+      window.addEventListener("load", async function () {
+        try {
+          await navigator.serviceWorker.register("./service-worker.js");
+          console.log("Service Worker berhasil didaftarkan");
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    })();
   </script>
   
 </body>

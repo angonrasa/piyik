@@ -43,6 +43,8 @@ import {
   deleteSongDetailsForNote,
 } from "../song/song.controller.js";
 import { getAllSongDetailsMap } from "../song/song.repository.js";
+import { initEditor } from "../editor/editor.controller.js";
+import { formatRelativeTime } from "../../shared/format-time.js";
 
 let selectedNoteId = null;
 let cachedNotes = [];
@@ -50,6 +52,9 @@ let cachedNotes = [];
 // scheduleAutoSave). Dipisah dari pemanggilan autoSaveForm() langsung
 // yang sudah ada untuk trigger keluar halaman / app di-background.
 let autoSaveTimer = null;
+// Kontrol riwayat undo/redo editor (diisi di initNotes). reset() dipanggil tiap
+// form diisi ulang supaya riwayat catatan lama tidak terbawa.
+let editor = null;
 
 const searchInput = document.getElementById("search-input");
 const filterTypeSelect = document.getElementById("filter-type");
@@ -93,6 +98,7 @@ function openNewForm(draftTitle = "") {
   toggleSongFormFields("catatan");
   closeSongPanel();
   closeFormMenu();
+  editor?.reset();
   showView("form");
 }
 
@@ -113,6 +119,8 @@ async function openEditForm() {
   }
   closeSongPanel();
   closeFormMenu();
+  editor?.reset();
+  editor?.setLastEdited(note.updatedAt);
 
   showView("form");
 }
@@ -202,6 +210,13 @@ async function autoSaveForm() {
   // membuat catatan duplikat baru.
   if (!data.id) {
     document.getElementById("input-id").value = noteId;
+  }
+
+  // Perbarui label "Diedit ...". Dilewati kalau form sudah pindah ke catatan
+  // lain selama menunggu (mis. user langsung membuka catatan berikutnya).
+  const saved = await getNote(noteId);
+  if (saved && Number(document.getElementById("input-id").value) === noteId) {
+    editor?.setLastEdited(saved.updatedAt);
   }
 }
 
@@ -318,6 +333,21 @@ export function initNotes() {
   });
   btnMenuSongDetail?.addEventListener("click", openSongPanel);
   btnSongPanelBack?.addEventListener("click", closeSongPanel);
+
+  // Undo/redo judul & isi (Phase 1 - B2, B3). Setelah undo/redo, auto save
+  // dijadwalkan ulang karena .value diubah lewat kode (tidak memicu event "input").
+  editor = initEditor({
+    titleEl: document.getElementById("input-title"),
+    contentEl: document.getElementById("input-content"),
+    undoBtn: document.getElementById("btn-undo"),
+    redoBtn: document.getElementById("btn-redo"),
+    typeEl: document.getElementById("input-type"),
+    wordCountEl: document.getElementById("editor-word-count"),
+    timestampEl: document.getElementById("editor-last-edited"),
+    formatTime: formatRelativeTime,
+    formatBarEl: document.getElementById("editor-format-bar"),
+    onRestore: scheduleAutoSave,
+  });
 
   initRelations();
   initTodos();

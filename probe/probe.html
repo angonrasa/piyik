@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Probe E2 - event keyboard</title>
+  <link rel="stylesheet" href="probe.css" />
+</head>
+<body>
+  <h1>Probe E2</h1>
+  <p>Ketik teks, pilih satu kata, ketuk CTRL, lalu ketuk huruf <b>c</b>, <b>b</b>, <b>z</b>, <b>a</b> (huruf kecil), lalu <b>C</b> (huruf besar). Lihat log di bawah.</p>
+  <textarea id="t" rows="5">halo dunia ini uji keyboard</textarea>
+  <div class="row">
+    <button id="ctrl" type="button">CTRL: mati</button>
+    <button id="clear" type="button">Hapus log</button>
+    <button id="copy" type="button">Salin log</button>
+  </div>
+  <pre id="log"></pre>
+  <script src="probe.js"></script>
+</body>
+</html>

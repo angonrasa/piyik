@@ -247,41 +247,102 @@
   padding: 0;
 }
 
-/* ---------- Bottom Navigation ---------- */
+/* ---------- Menu Navigasi (hamburger kiri bawah) ----------
+   Tombol 3 garis (#nav-menu-toggle) di pojok kiri bawah membuka panel
+   vertikal (#bottom-nav) ke atas. Panel menutup sendiri setelah memilih
+   menu / ketuk di luar (lihat shared/nav-menu.js). Tombol & panel
+   disembunyikan di Editor (view-switcher.js). ID & class item nav tidak
+   berubah, jadi semua listener lama tetap jalan. */
 
-#bottom-nav {
+.nav-toggle {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
+  left: max(16px, calc((100vw - var(--layout-max-width)) / 2 + 16px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 11;
 
-  max-width: var(--layout-max-width);
-  margin: 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
 
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
 
   background: var(--color-card);
-  border-top: 1px solid var(--color-border);
-  padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+  color: var(--color-text);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.nav-toggle:active {
+  transform: scale(0.95);
+}
+
+.nav-toggle[aria-expanded="true"] {
+  color: var(--color-accent);
+}
+
+.nav-toggle[hidden] {
+  display: none;
+}
+
+#bottom-nav {
+  position: fixed;
+  left: max(16px, calc((100vw - var(--layout-max-width)) / 2 + 16px));
+  /* 16px (jarak tombol) + 44px (tinggi tombol) + 8px (celah) */
+  bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  z-index: 12;
+
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
 
   font-family: var(--font-body);
+
+  /* Tertutup secara default: fade 200ms tanpa menggeser konten. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+}
+
+#bottom-nav.nav-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .nav-item {
   background: transparent;
   border: none;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
-  padding: 4px 8px;
+  gap: 12px;
+  min-height: 44px; /* target sentuh minimal 44px */
+  padding: 0 12px;
+  border-radius: var(--radius-button);
   color: var(--color-text-muted);
-  font-size: 12px; /* lebih kecil dari --font-size-caption (14px), khusus label nav yang ringkas */
+  font-size: 14px;
+  text-align: left;
   cursor: pointer;
   transition: color var(--transition-fast);
+}
+
+/* Ikon item menu 20px, sama dengan ikon toolbar editor. */
+.nav-item svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .nav-item-active {

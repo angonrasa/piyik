@@ -1,6 +1,9 @@
 /* styles/main.css */
-/* Reset dasar dan styling minimal.
-   Variabel warna/radius/dll ada di tokens.css (dimuat sebelum file ini). */
+/* Reset dasar dan styling umum (layout, daftar, search, chip, empty state,
+   header floating bersama, elemen global button/form/h3/hr, @media).
+   Variabel warna/radius/dll ada di tokens.css (dimuat sebelum file ini).
+   Gaya Editor ada di editor.css, gaya Detail catatan di detail.css
+   (dimuat setelah file ini: main -> editor -> detail). */
 
 * {
   box-sizing: border-box;
@@ -268,15 +271,6 @@ body {
   position: relative;
 }
 
-/* FAB (+) ada di luar #app (lihat index.html), jadi tidak otomatis ikut
-   disembunyikan saat showView() ganti section aktif. Sembunyikan manual
-   khusus saat editor (#view-form) sedang tampil -- editor sudah punya
-   tombol back sendiri di .editor-header, FAB jadi tidak relevan/menutupi
-   konten di sana. */
-body:has(#view-form:not([hidden])) .fab-add {
-  display: none;
-}
-
 .editor-header,
 .detail-header {
   position: absolute;
@@ -324,133 +318,11 @@ body:has(#view-form:not([hidden])) .fab-add {
   transform: none;
 }
 
-.detail-header-actions {
+.detail-header-actions,
+.editor-header-actions {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-/* Titik hijau kecil di tombol menu editor -- penanda "tersimpan otomatis",
-   sesuai mockup (.autosave-dot). */
-.autosave-dot {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-accent);
-  border: 1.5px solid #ffffff;
-}
-
-/* Judul screen (#form-title) dipertahankan hanya untuk aksesibilitas —
-   mockup tidak menampilkan judul screen di Editor secara visual. */
-
-/* ---------- Dropdown menu titik-tiga di Editor ----------
-   Berisi aksi yang sebelumnya tampil sebagai tombol Batal/Simpan penuh
-   di footer, atau field Editor Lagu yang selalu terlihat -- sekarang
-   disatukan di sini sesuai keputusan Tahap 7.1. */
-.editor-menu {
-  position: relative;
-}
-
-.editor-menu-dropdown {
-  position: absolute;
-  top: 46px;
-  right: 0;
-  min-width: 160px;
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-input);
-  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.14);
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.editor-menu-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 10px 12px;
-  border-radius: calc(var(--radius-input) - 4px);
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--font-size-body);
-  font-weight: 500;
-}
-
-.editor-menu-item:active {
-  background: var(--color-grey);
-  transform: none;
-}
-
-/* display:flex di atas menang atas [hidden] bawaan browser, jadi harus
-   ditulis eksplisit di sini -- pola sama dengan #song-fields[hidden]. */
-.editor-menu-dropdown[hidden] {
-  display: none;
-}
-
-/* Sama seperti di atas: display:block di .editor-menu-item menang atas
-   [hidden] bawaan browser, jadi "Detail Lagu" / "Hapus" tetap kelihatan
-   walau JS sudah set .hidden = true. Butuh override eksplisit juga. */
-.editor-menu-item[hidden] {
-  display: none;
-}
-
-.editor-menu-item-danger {
-  color: var(--color-danger);
-}
-
-/* ---------- Isi form Editor: judul besar & textarea polos full-bleed,
-   sesuai mockup (.title-input / .content-textarea). Header floating di
-   atas butuh ruang, jadi form diberi padding-top. ---------- */
-#note-form {
-  padding-top: 62px;
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100dvh - 76px - env(safe-area-inset-top, 0px));
-}
-
-.title-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 8px 0 4px;
-  margin-top: 0;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 24px;
-  color: var(--color-text);
-}
-
-.title-input::placeholder {
-  color: var(--color-border);
-  font-weight: 700;
-}
-
-.content-textarea {
-  flex: 1;
-  min-height: 260px;
-  width: 100%;
-  border: none;
-  outline: none;
-  resize: none;
-  background: transparent;
-  padding: 0;
-  margin-top: 16px;
-  font-family: var(--font-body);
-  font-size: var(--font-size-body);
-  line-height: 1.85;
-  color: var(--color-text);
-}
-
-.content-textarea::placeholder {
-  color: var(--color-text-muted);
-  font-style: italic;
 }
 
 /* ---------- Panel "Detail Lagu" (Tahap 7.1) ----------
@@ -488,182 +360,6 @@ body:has(#view-form:not([hidden])) .fab-add {
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: var(--font-size-heading);
-}
-
-/* ---------- Tipe: chip kecil (bukan card selebar form) ----------
-   Sesuai mockup (.type-chip): pill auto-width, ikon warna latar sesuai
-   tipe + chevron kecil. Generik untuk semua tipe (ikonnya diisi
-   src/shared/type-select.js). */
-.type-select-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: auto;
-  /* #note-form adalah flex column tanpa align-items custom (default:
-     stretch). Flex item selalu di-"blockify" browser walau class-nya
-     inline-flex, jadi tanpa baris ini elemen ini ikut ditarik selebar
-     form -> jadi bar lebar, bukan pill kecil seperti mockup. */
-  align-self: flex-start;
-  margin: 2px 0 20px;
-  padding: 4px 26px 4px 6px;
-  border: none;
-  border-radius: var(--radius-full);
-  background: var(--color-accent-soft);
-  /* Sekarang elemennya <button> (trigger bottom-sheet), bukan <div>
-     berisi <select> lagi -- reset sebagian style default `button`
-     generik di bawah (background, warna, padding, radius) supaya
-     tetap tampil sebagai pill kecil seperti sebelumnya. */
-  cursor: pointer;
-}
-
-.type-select-wrap:active {
-  transform: none;
-}
-
-.type-select-icon {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.type-select-label {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 12.5px;
-  color: var(--color-text);
-}
-
-/* <select> asli dipertahankan di DOM (nyimpen value form + didengar
-   event "change" oleh kode lain), tapi tidak lagi dipakai sebagai UI
-   -- popup-nya digantikan .type-sheet-overlay di bawah. */
-.type-select-native-hidden {
-  display: none;
-}
-
-.type-select-chevron {
-  position: absolute;
-  right: 8px;
-  width: 12px;
-  height: 12px;
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-
-/* ---------- Bottom-sheet pengganti popup native <select> tipe catatan ----------
-   Popup asli <select> dirender OS (lihat diskusi), warnanya tidak bisa
-   diatur CSS -- makanya diganti overlay + panel custom di sini. Isi
-   item di-generate JS dari <option> yang ada di #input-type (lihat
-   type-select.js), style mengikuti token warna yang sama dengan
-   chip/card lain supaya otomatis ikut tema apa pun yang sedang aktif. */
-.type-sheet-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(17, 24, 39, 0.4);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.type-sheet-overlay[hidden] {
-  display: none;
-}
-
-.type-sheet-overlay-open {
-  opacity: 1;
-}
-
-.type-sheet {
-  width: 100%;
-  max-width: 480px;
-  max-height: 70vh;
-  overflow-y: auto;
-  background: var(--color-card);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
-  padding: 8px 8px calc(12px + env(safe-area-inset-bottom, 0px));
-  box-shadow: 0 -8px 24px rgba(31, 41, 55, 0.18);
-  transform: translateY(100%);
-  transition: transform var(--transition-fast);
-}
-
-.type-sheet-overlay-open .type-sheet {
-  transform: translateY(0);
-}
-
-.type-sheet-handle {
-  width: 36px;
-  height: 4px;
-  margin: 6px auto 10px;
-  border-radius: var(--radius-full);
-  background: var(--color-border);
-}
-
-.type-sheet-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 10px;
-  border: none;
-  border-radius: var(--radius-input);
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--font-size-body);
-  font-weight: 500;
-  text-align: left;
-}
-
-.type-sheet-item:active {
-  background: var(--color-grey);
-  transform: none;
-}
-
-.type-sheet-item-active {
-  background: var(--color-accent-soft);
-}
-
-.type-sheet-item-icon {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.type-sheet-item-label {
-  flex: 1;
-}
-
-.type-sheet-item-check {
-  flex-shrink: 0;
-  color: var(--color-accent);
-  opacity: 0;
-}
-
-.type-sheet-item-active .type-sheet-item-check {
-  opacity: 1;
-}
-
-/* ---------- Counter field "Catatan (opsional)" (Tahap 2) ----------
-   Elemen ini selalu ada di form (dipakai bersama semua tipe), tapi hanya
-   diaktifkan (maxlength + tampil) untuk tipe "song" lewat
-   song.view.js -> setSongContentNoteMode(). Untuk tipe lain tetap hidden. */
-.input-content-counter {
-  display: block;
-  margin-top: 4px;
-  text-align: right;
-  font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
 }
 
 form label {
@@ -724,120 +420,10 @@ button:active {
   transform: scale(0.97);
 }
 
-/* ---------- Header Detail (Tahap A1 — redesign tampilan baca Lagu) ----------
-   Generik untuk semua tipe catatan, pola sama dengan .form-header /
-   .settings-header: back bulat transparan + judul. Subjudul & sembunyi
-   pill tipe khusus diisi song.controller.js untuk tipe "song" saja
-   (lihat setSongDetailHeader di song.view.js). */
-/* .detail-header sendiri (posisi floating + tombol ikon) sudah didefinisikan
-   di atas bersama .editor-header. Judul (#detail-title) tetap tampil di
-   dalam header ini (beda dari mockup polos yang naruh judul di body),
-   supaya tidak perlu memindah markup #detail-title -- cukup diberi
-   background semi-transparan+blur sendiri di sini, sama seperti tombol
-   ikon di sebelahnya, supaya tetap terbaca di atas konten yang di-scroll. */
-.detail-header-text {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 12px;
-  border-radius: var(--radius-input);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.detail-header-text #detail-title {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.detail-subtitle {
-  margin: 2px 0 0;
-  font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
-}
-
-/* Konten di bawah header digeser supaya tidak ketutup header floating. */
-#view-detail .detail-header + * {
-  margin-top: 52px;
-}
-
-#detail-title {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: var(--font-size-heading);
-}
-
-/* Pill tipe catatan (07-UI-Guidelines.md -> Card: "tag ditampilkan sebagai
-   pill kecil di bawah judul"). Warna berbeda per tipe, dipetakan dari warna
-   yang sama dipakai kartu ringkasan Home, supaya makna warnanya konsisten
-   di seluruh aplikasi (bukan cuma cycling acak). */
-.detail-type-pill {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-caption);
-  text-transform: capitalize;
-  margin: 4px 0 12px;
-  background: var(--color-secondary-soft);
-  color: var(--color-secondary);
-}
-
-.detail-type-pill[data-type="tugas"] {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-}
-
-.detail-type-pill[data-type="ide"] {
-  background: var(--color-warning-soft);
-  color: #b85c1e;
-}
-
-.detail-type-pill[data-type="belanja"],
-.detail-type-pill[data-type="orang"],
-.detail-type-pill[data-type="pengingat"] {
-  background: var(--color-lavender-soft);
-  color: var(--color-lavender);
-}
-
-#detail-content {
-  white-space: pre-wrap;
-  font-size: var(--font-size-body);
-  margin: 8px 0 16px;
-}
-
 hr {
   border: none;
   border-top: 1px solid var(--color-border);
   margin: 16px 0;
-}
-
-/* ---------- Card wrapper untuk section di Detail Catatan (Tahap 4.7 &
-   5.5 — 09-Redesign-Roadmap.md): Todo checklist, Song lyrics/toolbar, dan
-   Relations (Catatan Terkait + Rekomendasi). Mockup redesign tidak punya
-   layar acuan langsung untuk bagian-bagian ini, jadi dibungkus mengikuti
-   bahasa visual yang sudah dipakai di tempat lain (note-card di Beranda,
-   mini-note-card di Chat): surface bg + radius besar + shadow halus.
-   Menggantikan <hr /> polos yang dipakai sebelumnya sebagai pemisah. ---------- */
-.detail-card-section {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-soft);
-  padding: var(--space-md);
-  margin: var(--space-md) 0;
-}
-
-.detail-card-section h3:first-child,
-.detail-card-section h4:first-child {
-  margin-top: 0;
-}
-
-#todo-list,
-#related-list,
-#recommended-list {
-  list-style: none;
 }
 
 h3 {
@@ -845,30 +431,6 @@ h3 {
   font-weight: 600;
   font-size: var(--font-size-title);
   margin-bottom: 8px;
-}
-
-.btn-remove-relation {
-  background: var(--color-grey);
-  color: var(--color-text);
-  padding: 4px 10px;
-  font-size: var(--font-size-caption);
-}
-
-.relation-add {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  margin-bottom: 24px;
-}
-
-.relation-add select {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-input);
-  font-family: var(--font-body);
-  background: var(--color-card);
-  color: var(--color-text);
 }
 
 .settings-actions {

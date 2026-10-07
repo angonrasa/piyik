@@ -1,0 +1,8 @@
+body { font-family: sans-serif; margin: 12px; max-width: 430px; }
+h1 { font-size: 18px; margin: 0 0 6px; }
+p { font-size: 13px; margin: 0 0 8px; }
+textarea { width: 100%; box-sizing: border-box; font-size: 16px; }
+.row { display: flex; gap: 6px; margin: 8px 0; }
+button { flex: 1; min-height: 44px; font-size: 14px; }
+button.on { background: #84CC16; }
+pre { font-size: 11px; white-space: pre-wrap; word-break: break-all; background: #f3f4f6; padding: 8px; margin: 0; }
