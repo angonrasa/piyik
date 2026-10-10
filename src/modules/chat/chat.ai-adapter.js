@@ -27,11 +27,16 @@
 // BELUM dikerjakan — belum ada di daftar `providers` di bawah.
 
 import { NullAIProvider } from "./chat.ai-provider.interface.js";
-import { WebLLMAdapter } from "./ai-adapters/webllm.adapter.js";
+// WebLLMAdapter SENGAJA dinonaktifkan dulu (keputusan 10 Okt 2026): saat
+// Termux mati, WebLLM mulai mengunduh model ~1 GB tanpa indikator progress,
+// jadi chat terlihat macet. Aktifkan lagi nanti bersama UI progress +
+// toggle "Aktifkan AI" di AI-6. File webllm.adapter.js tetap ada, tidak
+// dihapus.
+// import { WebLLMAdapter } from "./ai-adapters/webllm.adapter.js";
 import { LocalServerAdapter } from "./ai-adapters/local-server.adapter.js";
 
 const nullProvider = new NullAIProvider();
-const providers = [new LocalServerAdapter(), new WebLLMAdapter(), nullProvider];
+const providers = [new LocalServerAdapter(), nullProvider];
 
 /**
  * Cari provider pertama yang isAvailable() = true, sesuai urutan
