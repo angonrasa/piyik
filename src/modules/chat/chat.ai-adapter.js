@@ -54,15 +54,41 @@ export async function isAIAvailable() {
   return provider.isAvailable();
 }
 
+// AI-5.1 — batas waktu tunggu jawaban AI. Model lokal di HP bisa lambat,
+// tapi tidak boleh membuat chat menggantung selamanya.
+const GENERATE_TIMEOUT_MS = 60000;
+
+/**
+ * @param {number} ms
+ * @returns {Promise<never>} selalu reject setelah ms
+ */
+function timeoutAfter(ms) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`AI timeout setelah ${ms / 1000} detik`)), ms);
+  });
+}
+
 /**
  * WAJIB dicek isAIAvailable() dulu oleh pemanggil sebelum memanggil ini
  * — adapter tidak mengecek ulang di sini supaya tetap tipis (cuma
  * meneruskan), sesuai "tidak ada logic AI di file ini".
+ *
+ * AI-5.1: tidak pernah melempar error & tidak pernah menggantung. Kalau
+ * provider gagal/timeout/balasan kosong -> return null, pemanggil yang
+ * memutuskan fallback-nya (rule engine tetap jalan tanpa AI).
  * @param {string} prompt
- * @returns {Promise<string>}
+ * @returns {Promise<string|null>}
  */
 export async function generateAIReply(prompt) {
-  const provider = await getActiveProvider();
-  return provider.generate(prompt);
+  try {
+    const provider = await getActiveProvider();
+    console.log("[AI-5 provider]", provider.constructor.name);
+
+    const reply = await Promise.race([provider.generate(prompt), timeoutAfter(GENERATE_TIMEOUT_MS)]);
+    return reply?.trim() || null;
+  } catch (error) {
+    console.error("[AI-5 generate gagal]", error);
+    return null;
+  }
 }
 

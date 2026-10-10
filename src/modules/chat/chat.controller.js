@@ -159,28 +159,46 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// AI-5.1 — guard supaya pesan tidak terkirim dobel saat balasan masih
+// diproses (sebelumnya tombol kirim bisa ditekan berulang kali).
+let isSending = false;
+
+const ERROR_REPLY = "Maaf, ada kendala saat memproses pesanmu. Coba lagi ya.";
+
 async function handleSubmit(event) {
   event.preventDefault();
+  if (isSending) return;
 
   const text = readInput();
   if (!text) return; // validasi minimal: jangan simpan pesan kosong
 
-  await addMessage(text);
-  clearInput();
+  isSending = true;
+  try {
+    await addMessage(text);
+    clearInput();
 
-  // Tampilkan pesan user dulu, baru proses balasan bot, supaya tidak
-  // terasa balasan sudah ada sebelum pesan user muncul.
-  renderMessages(await getAllMessages());
+    // Tampilkan pesan user dulu, baru proses balasan bot, supaya tidak
+    // terasa balasan sudah ada sebelum pesan user muncul.
+    renderMessages(await getAllMessages());
 
-  showTypingIndicator();
-  const randomDelay = TYPING_DELAY_MIN_MS + Math.random() * (TYPING_DELAY_MAX_MS - TYPING_DELAY_MIN_MS);
-  const [reply] = await Promise.all([generateReply(text), delay(randomDelay)]);
-  hideTypingIndicator();
+    showTypingIndicator();
+    const randomDelay = TYPING_DELAY_MIN_MS + Math.random() * (TYPING_DELAY_MAX_MS - TYPING_DELAY_MIN_MS);
 
-  await addBotMessage(reply, lastNoteRefs);
+    let reply;
+    try {
+      [reply] = await Promise.all([generateReply(text), delay(randomDelay)]);
+    } catch (error) {
+      console.error("[chat] generateReply gagal", error);
+      reply = ERROR_REPLY;
+    }
 
-  const messages = await getAllMessages();
-  renderMessages(messages);
+    await addBotMessage(reply, lastNoteRefs);
+  } finally {
+    // Selalu jalan, apapun yang terjadi di atas — indikator tidak nyangkut.
+    hideTypingIndicator();
+    isSending = false;
+    renderMessages(await getAllMessages());
+  }
 }
 
 // Tahap Chat Native Polish — mini-note-card: catatan yang mau ditampilkan
@@ -588,7 +606,10 @@ async function handleFallback(pesan) {
     return AI_PLACEHOLDER_REPLY;
   }
 
-  return generateAIReply(prompt);
+  // AI-5.1: generateAIReply() return null kalau gagal/timeout -> turun
+  // ke placeholder, chat tidak pernah menggantung atau kosong.
+  const aiReply = await generateAIReply(prompt);
+  return aiReply ?? AI_PLACEHOLDER_REPLY;
 }
 
 /**
