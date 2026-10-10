@@ -5,7 +5,7 @@
 
 // Naikkan angka ini setiap kali file CSS/JS berubah, supaya cache lama dibuang.
 // v2: main.css dipecah menjadi main.css + editor.css + detail.css.
-const CACHE_NAME = "piyik-mind-v7";
+const CACHE_NAME = "piyik-mind-v8";
 
 // Daftar file inti yang wajib ada supaya app tetap bisa dibuka saat offline.
 // Sesuaikan path di bawah ini dengan struktur project-mu (src/index.js, dst).
