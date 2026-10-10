@@ -803,8 +803,15 @@
   <script type="module" src="src/index.js"></script>
   <script type="module" src="src/shared/type-select.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+<script>
+    /* Eruda (console debug) hanya dimuat di localhost, tidak di produksi. */
+    if (["localhost", "127.0.0.1"].includes(location.hostname)) {
+      const erudaScript = document.createElement("script");
+      erudaScript.src = "https://cdn.jsdelivr.net/npm/eruda";
+      erudaScript.onload = () => eruda.init();
+      document.head.appendChild(erudaScript);
+    }
+    </script>
 
   <script>
     /* Service worker hanya aktif saat dibuka lewat alamat online (bukan
